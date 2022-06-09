@@ -1,6 +1,6 @@
 Tetris-Implementation for Reinforcement-Learning, written from scratch.
 
-Copyright (C) <2022>  <Shengdi "shc" Chen>
+Copyright (C) 2022 Shengdi 'shc' Chen (me@shengdichen.xyz)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published
@@ -14,9 +14,4 @@ GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-The author of this program shall be contacted with:
-    me@shengdichen.xyz
-    shenchen@ethz.ch
-    https://github.com/shengdichen
 
