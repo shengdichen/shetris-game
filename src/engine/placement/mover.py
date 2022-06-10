@@ -246,12 +246,48 @@ class BoundaryAnalyzer:
     1.  Whether it's within the bound
     """
 
+    # hard-coded data for the standard 20*10 game-field
+    # ((minimum-allowed-pos0, maximum-pos0), (min-pos1, max-pos1))
+    _std_valid_range_o = np.array(
+        (
+            ((+0, +18), (-1, +7)),
+            ((+0, +18), (-1, +7)),
+            ((+0, +18), (-1, +7)),
+            ((+0, +18), (-1, +7)),
+        )
+    )
+
+    _std_valid_range_i = np.array(
+        (
+            ((-1, +18), (+0, +6)),
+            ((+0, +16), (-1, +8)),
+            ((-2, +17), (+0, +6)),
+            ((+0, +16), (-2, +7)),
+        )
+    )
+
+    _std_valid_range_szljt = np.array(
+        (
+            ((+0, +18), (+0, +7)),
+            ((+0, +17), (+0, +8)),
+            ((-1, +17), (+0, +7)),
+            ((+0, +17), (-1, +7)),
+        )
+    )
+
     def __init__(self, size: tuple[int, int]):
         self._size0, self._size1 = size
 
-        self._valid_range_o = self._get_valid_range_all(RelCoord.rel_range_o)
-        self._valid_range_i = self._get_valid_range_all(RelCoord.rel_range_i)
-        self._valid_range_szljt = self._get_valid_range_all(RelCoord.rel_range_szljt)
+        if self.size0 == 20 and self.size1 == 10:
+            self._valid_range_o = BoundaryAnalyzer._std_valid_range_o
+            self._valid_range_i = BoundaryAnalyzer._std_valid_range_i
+            self._valid_range_szljt = BoundaryAnalyzer._std_valid_range_szljt
+        else:
+            self._valid_range_o = self._get_valid_range_all(RelCoord.rel_range_o)
+            self._valid_range_i = self._get_valid_range_all(RelCoord.rel_range_i)
+            self._valid_range_szljt = self._get_valid_range_all(
+                RelCoord.rel_range_szljt
+            )
 
     @property
     def size0(self):
