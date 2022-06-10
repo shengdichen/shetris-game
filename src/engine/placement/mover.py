@@ -23,6 +23,7 @@ import numpy as np
 
 from src.engine.placement.field import Field
 from src.engine.placement.piece import Piece
+from src.engine.placement.srs.kick import Kick
 
 
 class Mover:
@@ -161,6 +162,54 @@ class Mover:
         """
 
         return self._attempt_atomic_pos(piece, False, positive_dir)
+
+    def attempt_atomic_rot(self, piece: Piece, positive_dir: bool) -> Optional[Piece]:
+        """
+        attempt an atomic-rot:
+            1. if the atomic-rot is successful, return the new piece-info;
+            2. else, try all the srs-shift candidates, which shall also return
+            the new piece-info if one of the candidates are successful
+            3. if both steps fail, return None to signal failure
+
+        :param piece:
+        :param positive_dir:
+        :return: new piece-info if successful, None otherwise
+        """
+
+        check_string = Mover._atomic_to_check_string(2, positive_dir)
+
+        piece_new = Piece.from_atomic_rot(piece, positive_dir)
+
+        if self._failed_boundaries_collision(check_string, piece_new.coord):
+            return self._try_srs_shifts(piece_new, positive_dir)
+
+        return piece_new
+
+    def _try_srs_shifts(self, piece: Piece, positive_dir: bool) -> Optional[Piece]:
+        """
+        Check every SRS-shift candidate (in order) after initially failed
+        atomic-rot; this can be broken down to:
+            1. obtain all srs-shift candidates;
+            2. check each candidate by applying the corresponding move,
+            which is a composite-pos
+            3. as soon as a successful candidate is found, return the new
+            piece-info; if none of the candidates are acceptable, return None
+            to signal failure
+
+        :param piece: piece AFTER initial atomic-rot
+        :param positive_dir: True if in positive dir; False otherwise
+        :return: the new piece if found; None otherwise
+        """
+        pid = piece.pid
+        rot = piece.config.rot
+        srs_shifts = Kick.get_srs_candidates(pid, rot, positive_dir)
+
+        for shift in srs_shifts:
+            piece_new = Piece.from_multi_pos(piece, shift)
+            if not self._failed_boundaries_collision("LRUD", piece_new.coord):
+                return piece_new
+
+        return None
 
 
 if __name__ == "__main__":
