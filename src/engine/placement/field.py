@@ -37,6 +37,7 @@ class Field:
         This includes the following operations:
         a.  report full rows;
         b.  report indexes of non-zero entries
+        c.  write to new values based on np's (advanced-)indexing
 
     """
 
@@ -259,6 +260,35 @@ class Field:
 
         idx_view = np.nonzero(field_view)
         return idx_view
+
+    def set_from_idx(self, idx: tuple[np.ndarray, np.ndarray], new_val: bool):
+        """
+        Set entries at provided numpy-indexes to new value.
+
+        :param idx:
+        :param new_val:
+        :return:
+        """
+
+        self.field[idx] = new_val
+
+    def set_from_idx_pair(
+        self,
+        idx_old: tuple[np.ndarray, np.ndarray],
+        idx_new: tuple[np.ndarray, np.ndarray],
+    ):
+        self.set_from_idx(idx_old, False)
+        self.set_from_idx(idx_new, True)
+
+    def _set_rows(self, rows: np.ndarray, new_val=False) -> None:
+        """
+        Set all row-numbers into new value.
+
+        :param rows: the rows to set
+        :param new_val: the value to set them to
+        """
+
+        self.field[(rows,)] = new_val
 
 
 if __name__ == "__main__":
