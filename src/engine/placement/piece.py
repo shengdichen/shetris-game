@@ -89,6 +89,36 @@ class Config:
         delta = 1 if pos_dir else -1
         return Config(self.pos, (self.rot + delta) % 4)
 
+    def new_from_multi_pos0(self, delta: int) -> "Config":
+        """
+        Create new from multi-pos0.
+
+        :param delta: how much to move in pos0.
+        :return:
+        """
+
+        return Config(self.pos + np.array([delta, 0]), self.rot)
+
+    def new_from_multi_pos1(self, delta: int) -> "Config":
+        """
+        Create new from multi-pos1.
+
+        :param delta: how much to move in pos1.
+        :return:
+        """
+
+        return Config(self.pos + np.array([0, delta]), self.rot)
+
+    def new_from_multi_rot(self, delta: int) -> "Config":
+        """
+        Create new from multi-rot.
+
+        :param delta: how much to move in rot.
+        :return:
+        """
+
+        return Config(self.pos, self.rot + delta)
+
     def assign(self, config_new: "Config") -> None:
         """
         Modify self to take over another config.
