@@ -282,6 +282,48 @@ class Field:
         self.set_from_idx(idx_old, False)
         self.set_from_idx(idx_new, True)
 
+    @staticmethod
+    def _break_into_chunks(all_lines: np.ndarray) -> list[np.ndarray]:
+        """
+        Utility to break indexes of all full lines into consecutive chunks.
+
+
+        The input (all_liens) is supposed to be:
+        0.  all integers
+        1.  strictly increasing (as is the result when querying full-lines)
+        2.  not empty (containing at least one element)
+
+        E.g.,
+        [IN]
+            all_lines = np.array([1, 2, 3, 4, 6, 7, 9, 11])
+        [OUT]
+            [array([1, 2, 3, 4]), array([6, 7]), array([9]), array([11])]
+        [IN]
+            all_lines = np.array([1])
+        [OUT]
+            [array([1])]
+
+        :param all_lines: indexes of all full lines.
+        :return: a list of np.ndarrays, each a consecutive sequence of
+        index(es).
+        """
+
+        curr = np.array((all_lines[0],))
+        chunks = []
+
+        for idx in all_lines[1:]:
+            if idx == curr[-1] + 1:
+                curr = np.append(curr, idx)
+            else:
+                chunks.append(curr)
+
+                curr = np.array((idx,))
+
+        # must manually add the last chunk
+        chunks.append(curr)
+
+        return chunks
+
     def _set_rows(self, rows: np.ndarray, new_val=False) -> None:
         """
         Set all row-numbers into new value.
