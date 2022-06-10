@@ -81,5 +81,14 @@ class FieldReader:
         return np.loadtxt(filename_abs, dtype=bool)
 
 
+def run_reader():
+    print(FieldReader.get_script_abs_dir())
+
+
+def run_factory():
+    print(FieldFactory.get_all_zeros((20, 10)))
+    print(FieldFactory.get_all_ones((20, 10)))
+
+
 if __name__ == "__main__":
     pass
