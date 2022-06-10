@@ -142,5 +142,17 @@ class Config:
         return cls(np.array([0, 0]), rot)
 
 
+def run_config():
+    c = Config(np.array([1, 1]), 4)
+    print(c)
+
+    # typical atomic
+    c_tmp = c.new_from_atomic_rot(False)
+    print(c_tmp)
+
+    c.assign(c_tmp)
+    print(c)
+
+
 if __name__ == "__main__":
     pass
