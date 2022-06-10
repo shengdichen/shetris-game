@@ -211,6 +211,31 @@ class Mover:
 
         return None
 
+    def attempt_atomic(
+        self, move_type: int, piece: Piece, pos_dir: bool
+    ) -> Optional[Piece]:
+        """
+        A thin-wrapper for handling any type of atomic:
+        1.  which type of atomic;
+        2.  current piece-info;
+        3.  in positive or negative dir
+        This is used for human-plays.
+
+        :param move_type: 0 for pos0, 1 for pos1; anything else for rot
+        :param piece: current piece-info
+        :param pos_dir: True if in positive-dir, False otherwise
+        :return:
+        """
+
+        if move_type == 0:
+            atomic_mover = self.attempt_atomic_pos0
+        elif move_type == 1:
+            atomic_mover = self.attempt_atomic_pos1
+        else:
+            atomic_mover = self.attempt_atomic_rot
+
+        return atomic_mover(piece, pos_dir)
+
 
 if __name__ == "__main__":
     pass
