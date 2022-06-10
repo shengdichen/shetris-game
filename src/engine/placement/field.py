@@ -421,5 +421,12 @@ class Field:
             self._set_one(coord, new_val)
 
 
+def run_field_init():
+    from src.util.fieldfac import FieldReader
+
+    f = Field(FieldReader.read_from_file())
+    f.print_field()
+
+
 if __name__ == "__main__":
     pass
