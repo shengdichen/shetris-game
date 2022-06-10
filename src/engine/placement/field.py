@@ -464,6 +464,18 @@ def run_collision_checks():
     print(not f.has_collision(np.array(((+1, +2), (+1, +3), (+1, +4), (+1, +5)))))
 
 
+def run_lineclear():
+    from src.util.fieldfac import FieldReader
+
+    f = Field(FieldReader.read_from_file("lineclear/sample"))
+    f.print_field()
+
+    print("simulate line-clear")
+    f.lineclear(None)
+
+    f.print_field()
+
+
 def run_writeback_checks():
     from src.util.fieldfac import FieldReader
 
