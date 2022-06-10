@@ -282,6 +282,43 @@ class Field:
         self.set_from_idx(idx_old, False)
         self.set_from_idx(idx_new, True)
 
+    def lineclear(self, span_of_piece: Optional[np.ndarray] = None):
+        """
+        Perform the OP-LINECLEAR:
+        1.  find full-rows
+            a.  Considering the fact that this is usually called after a piece
+            has finished moving, the (optional) argument indicates the vertical
+            range of this newly finished piece.
+            b.  in the absence of this span, the whole field is targeted
+        2.  if there are no lines to clear:
+            ->  return immediately
+        3.  if there are full lines:
+            ->  break them into consecutive chunks (routine defined below)
+            ->  from the highest (lowest index in np) chunk to the lowest:
+                ->  perform line-clear on each chunk (routine defined below)
+
+        NOTE:
+        1.  the (vertical) span of a piece must be provided as:
+            (upper_row_of_piece, lower_row_of_piece + 1)
+            in the usual range() convention of numpy and python
+
+        :type span_of_piece: the vertical span to target
+        :return: None
+        """
+
+        if span_of_piece is None:
+            # 0-indexing:
+            #   -> this is one row BELOW the lowest row of the field
+            #   -> look at the whole field!
+            target_range = 0, self.size[0]
+        else:
+            target_range = span_of_piece
+
+        full_rows = self._full_row_num(target_range)
+        if full_rows is not None:
+            for chunk in Field._break_into_chunks(full_rows):
+                self._lineclear_chunk(chunk)
+
     @staticmethod
     def _break_into_chunks(all_lines: np.ndarray) -> list[np.ndarray]:
         """
