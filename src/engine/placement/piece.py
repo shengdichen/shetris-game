@@ -243,6 +243,18 @@ class Piece:
         return cls(pid, config, coord)
 
 
+def run_piece():
+    piece = Piece()
+    print(piece)
+
+    # a new piece is spawned
+    pid = 1
+    # initial-move
+    config = Config(np.array([0, 2]), 3)
+    piece = Piece.from_init(pid, config)
+    print(piece)
+
+
 class CoordFactory:
     """
     A state-less factory to construct the four coordinates of a piece.
