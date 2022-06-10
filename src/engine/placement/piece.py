@@ -56,6 +56,39 @@ class Config:
     def rot(self, value: int):
         self._rot = value
 
+    def new_from_atomic_pos0(self, pos_dir: bool) -> "Config":
+        """
+        Create new from atomic-pos0.
+
+        :param pos_dir: True if in positive direction, False otherwise
+        :return:
+        """
+
+        delta = 1 if pos_dir else -1
+        return Config(self.pos + np.array([delta, 0]), self.rot)
+
+    def new_from_atomic_pos1(self, pos_dir: bool) -> "Config":
+        """
+        Create new from atomic-pos1.
+
+        :param pos_dir: True if in positive direction, False otherwise
+        :return:
+        """
+
+        delta = 1 if pos_dir else -1
+        return Config(self.pos + np.array([0, delta]), self.rot)
+
+    def new_from_atomic_rot(self, pos_dir: bool) -> "Config":
+        """
+        Create new from atomic-rot.
+
+        :param pos_dir: True if in positive direction, False otherwise
+        :return:
+        """
+
+        delta = 1 if pos_dir else -1
+        return Config(self.pos, (self.rot + delta) % 4)
+
     def assign(self, config_new: "Config") -> None:
         """
         Modify self to take over another config.
