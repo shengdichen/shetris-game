@@ -17,6 +17,8 @@
 #
 
 
+from typing import Optional
+
 import numpy as np
 
 from src.engine.placement.srs.coord import RelCoord
@@ -154,6 +156,91 @@ def run_config():
 
     c.assign(c_tmp)
     print(c)
+
+
+class Piece:
+    """
+    This stores everything about the current piece:
+    1.  the pid (which piece);
+    2.  the config (in which config is the piece);
+    3.  the coord (the four coordinates of the piece in its config).
+
+    The coord is fetched from CoordFactory with:
+    1.  the pid
+    2.  the config.
+
+    """
+
+    def __init__(
+        self,
+        pid: Optional[int] = None,
+        config: Optional[Config] = None,
+        coord: Optional[np.ndarray] = None,
+    ):
+        """
+        It really makes no sense to provide default values from these: as any
+        piece in any config is possible.
+        Instead, we will rely on the classmethods below to construct objects.
+
+        """
+
+        self._pid = pid
+        self._config = config
+        self._coord = coord
+
+    def __str__(self):
+        """
+        Print the coordinates in transposed form, makes for a more compact
+        (less rows) output.
+
+        """
+
+        if self.coord is None:
+            return "[Piece] id={0} | {1}\n{2}".format(self.pid, self.config, self.coord)
+        return "[Piece] id={0} | {1}\n{2}".format(
+            self.pid, self.config, self.coord.transpose()
+        )
+
+    @property
+    def pid(self):
+        return self._pid
+
+    @pid.setter
+    def pid(self, value: int):
+        self._pid = value
+
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, value: Config):
+        self._config.assign(value)
+
+    @property
+    def coord(self):
+        return self._coord
+
+    @coord.setter
+    def coord(self, value: np.ndarray):
+        self._coord = value
+
+    @classmethod
+    def from_init(cls, pid: int, config: Config) -> "Piece":
+        """
+        Called when a piece is newly created: at this state, we only have:
+        1.  its pid
+        2.  its config
+        ; this is seen as the "init"-step
+        to calculate its coordinates from its config.
+
+        :param pid: pid of piece
+        :param config: config of piece
+        :return:
+        """
+
+        coord = CoordFactory.get_coord(pid, config)
+        return cls(pid, config, coord)
 
 
 class CoordFactory:
