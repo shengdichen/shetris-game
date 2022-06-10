@@ -17,6 +17,8 @@
 #
 
 
+from typing import Optional
+
 import numpy as np
 
 
@@ -29,6 +31,11 @@ class Field:
     2.  Checks:
         Give me coords,
         Tell you if exceeded boundaries or has collision.
+    3.  Line-Clear operation
+        Given me nothing,
+        Remove full lines, shift everything above that downwards
+        This includes the following operations:
+        a.  report full rows;
 
     """
 
@@ -193,6 +200,44 @@ class Field:
                 return True
 
         return False
+
+    def _full_row_num(self, target_range: tuple[int, int]) -> Optional[np.ndarray]:
+        """
+        Find numbers (indexes) of all full rows.
+
+        NOTE:
+            The output of this is not necessarily consecutive:
+            E.g.: an I-piece (bar-piece) could have the top and the bottom of
+            its four boxes in a full-row, while some of its two rows in between
+            are not full.
+
+        NOTE:
+            The indexing convention of numpy and range() is used for the input:
+            E.g.: if want to target the lines of (15, 16, 17), then this
+            range-value should be (15, 18).
+            E.g.: if want to target the whole field, this should be: (0,
+            self.size[0]).
+
+        :param target_range: (Continuous) range of rows to look for full-rows
+        within.
+        :return: indexes (1D np.ndarray) of full-rows.
+        """
+
+        lower_than, higher_than = target_range
+        target_field = self.field[lower_than:higher_than, :]
+
+        # a vector of n_rows: True if a row is full, False otherwise
+        is_fullrow = np.all(target_field, axis=1)
+        # nonzero() returns a tuple for np's advanced indexing: fish out with
+        # [0]
+        fullrow_numbers = np.nonzero(is_fullrow)[0]
+        print(fullrow_numbers)
+
+        if fullrow_numbers.size == 0:
+            return None
+        # must add back the starting position if we did not look at the whole
+        # field
+        return fullrow_numbers + lower_than
 
 
 if __name__ == "__main__":
