@@ -242,6 +242,64 @@ class Piece:
         coord = CoordFactory.get_coord(pid, config)
         return cls(pid, config, coord)
 
+    @classmethod
+    def from_atomic_pos0(cls, piece: "Piece", positive_dir: bool) -> "Piece":
+        """
+        Construct the new piece-info after an atomic-pos0.
+        NOTE:
+        The new coordinates are easily found by just shifting the existing
+        coordinates.
+
+        :param piece: current piece-info
+        :param positive_dir:
+        :return:
+        """
+
+        config_new = piece.config.new_from_atomic_pos0(positive_dir)
+
+        delta = 1 if positive_dir else -1
+        coord_new = piece.coord + np.array([delta, 0])
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def from_atomic_pos1(cls, piece: "Piece", positive_dir: bool) -> "Piece":
+        """
+        Construct the new piece-info after an atomic-pos1.
+        NOTE:
+        The new coordinates are easily found by just shifting the existing
+        coordinates.
+
+        :param piece: current piece-info
+        :param positive_dir:
+        :return:
+        """
+
+        config_new = piece.config.new_from_atomic_pos1(positive_dir)
+
+        delta = 1 if positive_dir else -1
+        coord_new = piece.coord + np.array([0, delta])
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def from_atomic_rot(cls, piece: "Piece", positive_dir: bool) -> "Piece":
+        """
+        Construct the new piece-info after an atomic-rot.
+        NOTE:
+        Since the rotation is modified, must fetch the new coordinates
+        from CoordsFactory.
+
+        :param piece: current piece-info
+        :param positive_dir:
+        :return:
+        """
+
+        config_new = piece.config.new_from_atomic_rot(positive_dir)
+        coord_new = CoordFactory.get_coord(piece.pid, config_new)
+
+        return cls(piece.pid, config_new, coord_new)
+
 
 def run_piece():
     piece = Piece()
@@ -252,6 +310,10 @@ def run_piece():
     # initial-move
     config = Config(np.array([0, 2]), 3)
     piece = Piece.from_init(pid, config)
+    print(piece)
+
+    # perform atomic-rot
+    piece = Piece.from_atomic_rot(piece, True)
     print(piece)
 
 
