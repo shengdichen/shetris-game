@@ -464,5 +464,17 @@ def run_collision_checks():
     print(not f.has_collision(np.array(((+1, +2), (+1, +3), (+1, +4), (+1, +5)))))
 
 
+def run_writeback_checks():
+    from src.util.fieldfac import FieldReader
+
+    f = Field(FieldReader.read_from_file())
+
+    print("simulate initial coord")
+    # the initial coord (after pid-generation and initial-move)
+    coords = np.array(((+1, +2), (+1, +3), (+1, +4), (+1, +5)))
+    f.set_many(coords)
+    f.print_field()
+
+
 if __name__ == "__main__":
     pass
