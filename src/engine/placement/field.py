@@ -21,6 +21,8 @@ from typing import Optional
 
 import numpy as np
 
+from src.util.idxfac import IndexFactory
+
 
 class Field:
     """
@@ -289,6 +291,27 @@ class Field:
         """
 
         self.field[(rows,)] = new_val
+
+    def _lineclear_chunk(self, chunk: np.ndarray) -> None:
+        """
+        Perform line-clear within a chunk of consecutive lines.
+
+        NOTE:
+        It is up to the caller to guarantee that chunk is not empty, i.e.,
+        there is at least one line to clear.
+
+        1.  set all rows of the chunk to 0;
+        2.  move everything (strictly) above the top of the chunk downwards
+
+        :return:
+        """
+
+        self._set_rows(chunk, False)
+        higher_than, n_full_rows = np.min(chunk), chunk.shape[0]
+
+        idx_nonzero = self.idx_nonzero(higher_than)
+        idx_new = IndexFactory.make_shifted_pos0(idx_nonzero, n_full_rows)
+        self.set_from_idx_pair(idx_nonzero, idx_new)
 
 
 if __name__ == "__main__":
