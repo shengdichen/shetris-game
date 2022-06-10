@@ -140,6 +140,28 @@ class Mover:
             return None
         return piece_new
 
+    def attempt_atomic_pos0(self, piece: Piece, positive_dir: bool) -> Optional[Piece]:
+        """
+        Razor-thin wrapper to perform atomic-pos0.
+
+        :param piece:
+        :param positive_dir:
+        :return:
+        """
+
+        return self._attempt_atomic_pos(piece, True, positive_dir)
+
+    def attempt_atomic_pos1(self, piece: Piece, positive_dir: bool) -> Optional[Piece]:
+        """
+        Razor-thin wrapper to perform atomic-pos1.
+
+        :param piece:
+        :param positive_dir:
+        :return:
+        """
+
+        return self._attempt_atomic_pos(piece, False, positive_dir)
+
 
 if __name__ == "__main__":
     pass
