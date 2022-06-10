@@ -26,6 +26,9 @@ class Field:
     1.  Indexing:
         Give me coords,
         Tell you the values there.
+    2.  Checks:
+        Give me coords,
+        Tell you if there is collision.
 
     """
 
@@ -100,6 +103,18 @@ class Field:
             states[i] = self.at_one(curr_coord)
 
         return states
+
+    def has_collision(self, candidates: np.ndarray) -> bool:
+        """
+        Check if any candidate-coordinates collides with the existing field.
+
+        :param candidates: the candidate-coordinates
+        :return: True if collision exists, False otherwise
+        """
+
+        curr_vals = self.at(candidates)
+
+        return np.any(curr_vals)
 
 
 if __name__ == "__main__":
