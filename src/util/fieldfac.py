@@ -17,6 +17,8 @@
 #
 
 
+import os
+
 import numpy as np
 
 
@@ -45,6 +47,38 @@ class FieldFactory:
         """
 
         return np.ones(size, dtype=bool)
+
+
+class FieldReader:
+    """
+    Read from file the underlying (numpy) matrices of a field.
+
+    """
+
+    @staticmethod
+    def get_script_abs_dir() -> str:
+        """
+        Retrieve the absolute path of this script.
+
+        :return: absolute path of this script
+        """
+
+        real_path = os.path.realpath(__file__)
+        return os.path.dirname(real_path)
+
+    @staticmethod
+    def read_from_file(filename_rel: str = "sample") -> np.ndarray:
+        """
+        Read a tetris-field from a local file.
+
+        :param filename_rel: file-name relative to the path of this script
+        :return: numpy's ndarray of bool
+        """
+
+        scriptdir_abs = FieldReader.get_script_abs_dir()
+        filename_abs = os.path.join(scriptdir_abs, filename_rel)
+
+        return np.loadtxt(filename_abs, dtype=bool)
 
 
 if __name__ == "__main__":
