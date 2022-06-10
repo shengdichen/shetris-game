@@ -428,5 +428,29 @@ def run_field_init():
     f.print_field()
 
 
+def run_boundary_checks():
+    from src.util.fieldfac import FieldReader
+
+    f = Field(FieldReader.read_from_file())
+
+    print("LR-checks")
+    print(f.exceeded_boundaries("L", np.array(((+0, +0), (+0, -1)))) is True)
+    print(f.exceeded_boundaries("L", np.array(((+0, +0), (+0, +0)))) is False)
+    print(f.exceeded_boundaries("R", np.array(((+0, +0), (+0, 10)))) is True)
+    print(f.exceeded_boundaries("R", np.array(((+0, +0), (+0, 9)))) is False)
+
+    print("UD-checks")
+    print(f.exceeded_boundaries("U", np.array(((+0, +0), (-1, +0)))) is True)
+    print(f.exceeded_boundaries("U", np.array(((+0, +0), (+0, +0)))) is False)
+    print(f.exceeded_boundaries("D", np.array(((+0, +0), (+20, +0)))) is True)
+    print(f.exceeded_boundaries("D", np.array(((+0, +0), (+19, +0)))) is False)
+
+    print("mix-checks")
+    print(f.exceeded_boundaries("R", np.array(((+0, +0), (+0, -1)))) is False)
+    print(f.exceeded_boundaries("L", np.array(((+0, +0), (+0, -1)))) is True)
+    print(f.exceeded_boundaries("L", np.array(((+0, +0), (+0, 10)))) is False)
+    print(f.exceeded_boundaries("R", np.array(((+0, +0), (+0, 10)))) is True)
+
+
 if __name__ == "__main__":
     pass
