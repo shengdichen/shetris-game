@@ -17,9 +17,12 @@
 #
 
 
+from typing import Optional
+
 import numpy as np
 
 from src.engine.placement.field import Field
+from src.engine.placement.piece import Piece
 
 
 class Mover:
@@ -33,6 +36,13 @@ class Mover:
 
     """
 
+    check_string_to_check_tuple = {
+        "U": [True, False],
+        "D": [True, True],
+        "L": [False, False],
+        "R": [False, True],
+    }
+
     def __init__(self, field: Field) -> None:
         """
         Tell the Mover to use some field.
@@ -45,6 +55,36 @@ class Mover:
     @property
     def field(self):
         return self._field
+
+    @staticmethod
+    def _atomic_to_check_string(atomic_type: int, positive_dir: bool) -> str:
+        """
+        Get the boundary-check-string of an atomic:
+        i.  if moving left: check left-boundary;
+        ii. if moving right: check right-boundary;
+        etc.
+        Otherwise, check all boundaries
+
+        :param atomic_type: 0 for pos0; 1 for pos1; anything else for rot
+        :param positive_dir: True if the atomic is in negative sense; False
+        otherwise
+        :return:
+        """
+
+        if atomic_type == 0:
+            if positive_dir:
+                check_string = "D"
+            else:
+                check_string = "U"
+        elif atomic_type == 1:
+            if positive_dir:
+                check_string = "R"
+            else:
+                check_string = "L"
+        else:
+            check_string = "LRUD"
+
+        return check_string
 
     def _failed_boundaries_collision(
         self, check_string: str, candidates: np.ndarray
@@ -74,6 +114,31 @@ class Mover:
             return True
 
         return False
+
+    def _attempt_atomic_pos(
+        self, piece: Piece, in_pos0: bool, positive_dir: bool
+    ) -> Optional[Piece]:
+        """
+        Attempt an atomic in pos0 or pos1.
+        1.  first convert an atomic to the cooresponding check-string
+        2.  perform the boundary-collision check
+
+        :param piece: initial piece-information
+        :param in_pos0: True if atomic in pos0; False otherwise (pos1)
+        :param positive_dir: True if moving in positive direction; False else
+        :return: None if the move failed; the new coords if succeeded
+        """
+
+        if in_pos0:
+            check_string = Mover._atomic_to_check_string(0, positive_dir)
+            piece_new = Piece.from_atomic_pos0(piece, positive_dir)
+        else:
+            check_string = Mover._atomic_to_check_string(1, positive_dir)
+            piece_new = Piece.from_atomic_pos1(piece, positive_dir)
+
+        if self._failed_boundaries_collision(check_string, piece_new.coord):
+            return None
+        return piece_new
 
 
 if __name__ == "__main__":
