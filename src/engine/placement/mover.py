@@ -237,5 +237,45 @@ class Mover:
         return atomic_mover(piece, pos_dir)
 
 
+def test_setup():
+    from src.util.fieldfac import FieldReader
+    from src.engine.placement.piece import Config
+
+    f = Field(FieldReader.read_from_file())
+    m = Mover(f)
+
+    print("checking initial-put")
+    pid = 1
+    config = Config(np.array([-1, +0]), 0)
+    piece = Piece.from_init(pid, config)
+
+    return m, piece
+
+
+def atomic_test():
+    m, piece = test_setup()
+    m.field.print_field()
+    print(piece)
+
+    print("Checking atomics")
+    # this is successful
+    attempt = m.attempt_atomic_pos1(piece, True)
+    if attempt is not None:
+        piece = attempt
+        print("Right move successful\n", "piece")
+        print(piece)
+    else:
+        print("Right move failed")
+
+    # this will fail
+    attempt = m.attempt_atomic_pos0(piece, True)
+    if attempt is not None:
+        piece = attempt
+        print("Down move successful")
+        print(piece)
+    else:
+        print("Down move failed")
+
+
 if __name__ == "__main__":
     pass
