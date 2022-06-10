@@ -201,5 +201,12 @@ class CoordFactory:
         return config.pos[idx] + rel_range
 
 
+def run_factory():
+    pid = 1
+    config = Config(np.array([5, 4]), 1)
+
+    print(CoordFactory.get_coord(pid, config))
+
+
 if __name__ == "__main__":
     pass
