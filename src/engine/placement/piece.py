@@ -19,6 +19,8 @@
 
 import numpy as np
 
+from src.engine.placement.srs.coord import RelCoord
+
 
 class Config:
     """
@@ -152,6 +154,51 @@ def run_config():
 
     c.assign(c_tmp)
     print(c)
+
+
+class CoordFactory:
+    """
+    A state-less factory to construct the four coordinates of a piece.
+
+    """
+
+    @staticmethod
+    def get_coord(pid: int, config: Config) -> np.ndarray:
+        """
+        Calculate the coords of some piece (pid) in some config.
+
+        :param pid: which piece
+        :param config: which config
+        :return: coordinates of the piece in the config (4 * 2)
+        """
+
+        shifts = RelCoord.get_rel_coord(pid, config.rot)
+
+        return config.pos + shifts
+
+    @staticmethod
+    def get_range(pid: int, config: Config, is_pos0: bool) -> np.ndarray:
+        """
+        The range of the piece relative to the 2D-position in the config.
+
+        In particular, this is used to:
+        1.  in pos0:
+            ->  obtain the vertical range of a piece to perform the line-clear
+            operation on
+        2.  in pos1
+            ->  obtain the initial ZERO-position of a piece in PRE-phase
+
+        :param pid:
+        :param config:
+        :param is_pos0:
+        :return:
+        """
+
+        rel_range = RelCoord.get_rel_range(pid, config.rot, is_pos0)
+        # print("rel range:", rel_range)
+
+        idx = 0 if is_pos0 else 1
+        return config.pos[idx] + rel_range
 
 
 if __name__ == "__main__":
