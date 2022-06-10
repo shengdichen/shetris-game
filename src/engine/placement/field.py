@@ -452,5 +452,17 @@ def run_boundary_checks():
     print(f.exceeded_boundaries("R", np.array(((+0, +0), (+0, 10)))) is True)
 
 
+def run_collision_checks():
+    from src.util.fieldfac import FieldReader
+
+    f = Field(FieldReader.read_from_file())
+
+    print("collision checks")
+    # has collision (we have a piece at (+1, +1))
+    print(f.has_collision(np.array(((+1, +0), (+1, +1), (+1, +2), (+1, +3)))))
+    print(f.has_collision(np.array(((+1, +1), (+1, +2), (+1, +3), (+1, +4)))))
+    print(not f.has_collision(np.array(((+1, +2), (+1, +3), (+1, +4), (+1, +5)))))
+
+
 if __name__ == "__main__":
     pass
