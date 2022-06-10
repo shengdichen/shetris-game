@@ -40,6 +40,9 @@ class Field:
         a.  report full rows;
         b.  report indexes of non-zero entries
         c.  write to new values based on np's (advanced-)indexing
+    4.  Write-backs:
+        Given me coords (checked: no exceeding boundaries, no collisions)
+        Write True back to the field in these coords.
 
     """
 
@@ -391,6 +394,31 @@ class Field:
         idx_nonzero = self.idx_nonzero(higher_than)
         idx_new = IndexFactory.make_shifted_pos0(idx_nonzero, n_full_rows)
         self.set_from_idx_pair(idx_nonzero, idx_new)
+
+    def _set_one(self, coord: np.ndarray, new_val: bool = True) -> None:
+        """
+        Set one entry at some coord to some new value.
+
+        :param coord:
+        :param new_val:
+        """
+
+        self.field[self.unpack_coord(coord)] = new_val
+
+    def set_many(self, coords: np.ndarray, new_val: bool = True) -> None:
+        """
+        Set all entries at provided coords to the (same) new value.
+
+        Usage:
+        1.  after a piece has finished moving, write its final coordinates to
+        the field before envoking the line-clear.
+
+        :param coords:
+        :param new_val:
+        """
+
+        for coord in coords:
+            self._set_one(coord, new_val)
 
 
 if __name__ == "__main__":
