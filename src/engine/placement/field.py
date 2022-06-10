@@ -36,6 +36,7 @@ class Field:
         Remove full lines, shift everything above that downwards
         This includes the following operations:
         a.  report full rows;
+        b.  report indexes of non-zero entries
 
     """
 
@@ -238,6 +239,26 @@ class Field:
         # must add back the starting position if we did not look at the whole
         # field
         return fullrow_numbers + lower_than
+
+    def idx_nonzero(self, higher_than: int) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Get numpy-indexes of non-zero boxes, if a range is provided (a tuple),
+        use this for slicing.
+
+        :param higher_than: typically: above_row is the highest row to be
+        cleared next
+        :return: numpy-indexes of non-zero entries
+        """
+
+        if higher_than is None:
+            # 0-indexing
+            #   -> this is one row BELOW the lowest row of the field
+            #   -> look at the whole field!
+            higher_than = self.size[0]
+        field_view = self.field[:higher_than, :]
+
+        idx_view = np.nonzero(field_view)
+        return idx_view
 
 
 if __name__ == "__main__":
