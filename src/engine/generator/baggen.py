@@ -120,6 +120,29 @@ class _GeneratorBag(Generator):
     def reservoir(self):
         return self._reservoir
 
+    def gen_bag(self):
+        raise NotImplementedError
+
+    def gen_bags(self, n_bags: int):
+        """
+        1.  Generate n_bags amount of bags;
+        2.  Write the bags to the reservoir.
+
+        Usage-cases:
+        1.  When the generator is created, the reservoir is pre-filled.
+        2.  Refill the reserve after amount of ready pids drops below the
+        threshold after popping a pid.
+
+        :param n_bags:
+        :return:
+        """
+
+        for __ in range(n_bags):
+            new_bag = self.gen_bag()
+            self.reservoir.refill(new_bag)
+
+        print("Curr ready", self.reservoir.data)
+
     def get_pids(self, n_pids: int = 2):
         pass
 
