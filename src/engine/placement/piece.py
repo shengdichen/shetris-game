@@ -439,6 +439,27 @@ class Piece:
 
         return cls(piece.pid, config_new, coord_new)
 
+    @classmethod
+    def to_absolute(cls, piece: "Piece", target: Config) -> "Piece":
+        curr_config = piece.config
+        diff_config = Config(target.pos - curr_config.pos, target.rot - curr_config.rot)
+
+        return Piece.from_multi(piece, diff_config)
+
+    @classmethod
+    def to_absolute_pos(cls, piece: "Piece", target_pos: np.ndarray):
+        """
+        Used in the init-phase to fetch in the ZERO-position.
+
+        :param piece:
+        :param target_pos:
+        :return:
+        """
+        curr_pos = piece.config.pos
+        diff_pos = target_pos - curr_pos
+
+        return Piece.from_multi_pos(piece, diff_pos)
+
 
 def run_piece():
     piece = Piece()
