@@ -548,6 +548,51 @@ class BoundaryAnalyzer:
         limits = np.array(((0, self.size0), (0, self.size1)))
         return limits - rel_range
 
+    def get_zero_pos(self, pid: int, rot: int) -> np.ndarray:
+        """
+        Get the:
+        1.  Up-most
+        2.  AND left-most
+        reference-pos for a piece in some rotation, referred to as the
+        "ZERO"-ref-pos.
+
+        NOTE:
+        The knowledge of this particular "ZERO" ref-pos is critical for the
+        PRE-phase:
+        1.  after pid has been generated, and user's input for rot for the
+        pre-phase has been processed
+        2.  before the user's input for pos1 is processed
+
+        NOTE:
+        Significance of the ZERO-pos:
+        1.  Once a piece is in zero-pos, the immediately following input of:
+                SHIFT in pos0 and pos1
+            is exactly equal to the resultant
+                ABSOLUTE-VALUE in pos0 and pos1
+            subject of course to subsequent boundary & collision checks
+        2.  As a consequence, the
+                static(!) valid-range of the ref-pos
+            of this piece in this rot, as provided by the SRS-data, is directly
+            equal to the
+                valid INPUT range
+        As a result, setting a piece to the ZERO-pos literally sets the pos of
+        a piece to its (additive) 0-position, such that subsequent shift inputs
+        (in pos) equates to the final, absolute state (in pos).
+
+        :param pid:
+        :param rot:
+        :return:
+        """
+
+        if pid == 0:
+            valid_range_all = self.valid_range_o[rot]
+        elif pid == 1:
+            valid_range_all = self.valid_range_i[rot]
+        else:
+            valid_range_all = self.valid_range_szljt[rot]
+
+        return np.array((valid_range_all[0][0], valid_range_all[1][0]))
+
     def get_valid_range(self, pid: int, rot: int, is_pos0: bool, pos_dir: bool):
         """
         Get the valid range of a piece, in the sense that it stays within
