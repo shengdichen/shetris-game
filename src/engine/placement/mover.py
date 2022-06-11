@@ -338,6 +338,20 @@ class Mover:
 
         return piece
 
+    def attempt_drop(self, piece: Piece) -> Piece:
+        """
+        A razor-thin wrapper to call the max-out operation on pos0, in positive
+        direction;
+
+        NOTE:
+        Otherwise known as a "hard-drop".
+
+        :param piece:
+        :return:
+        """
+
+        return self.attempt_maxout(0, piece, True)
+
     def _bad_boundary(self, piece: Piece, is_pos0: bool, pos_dir: bool) -> bool:
         """
         Check if one boundary has been exceeded.
