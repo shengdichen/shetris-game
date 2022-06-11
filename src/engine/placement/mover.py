@@ -285,6 +285,25 @@ class Mover:
 
         return False
 
+    def bad_boundaries_collision(self, check_str: str, piece: Piece):
+        """
+        Perform the standard check:
+        1.  Boundaries check
+        2.  collision check
+
+        :param check_str:
+        :param piece:
+        :return:
+        """
+
+        if self._bad_boundaries(piece, check_str):
+            return True
+        if self.field.has_collision(piece.coord):
+            print("Failed collision")
+            return True
+
+        return False
+
 
 class BoundaryAnalyzer:
     """
