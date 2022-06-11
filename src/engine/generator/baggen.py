@@ -179,5 +179,26 @@ class Shuffler(_GeneratorBag):
         return self.rng.permutation(self.bag)
 
 
+class Sequencer(_GeneratorBag):
+    """
+    Give me:
+    1.  a bag
+    and I will give you:
+    1.  the bag in its original order, over and over, i.e., the original bag is
+    used as a fixed sequence.
+
+    Usage:
+    1.  If the bag is just one piece, we will just receive the piece over and
+    over.
+
+    """
+
+    def __init__(self, bag: np.ndarray):
+        super().__init__(bag)
+
+    def gen_bag(self) -> np.ndarray:
+        return self.bag
+
+
 if __name__ == "__main__":
     pass
