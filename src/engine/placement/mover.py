@@ -826,36 +826,27 @@ def premove_test():
     m, piece = test_setup()
     m.field.print_field()
 
-    # this will fail
     pid = 6
     config = Config(np.array([-4, +0]), 0)
     piece = Piece.from_init(pid, config)
-    print(m.attempt_pre(piece))
 
-    # this will also fail
-    pid = 6
-    config = Config(np.array([-4, +1]), 0)
-    piece = Piece.from_init(pid, config)
-    print(m.attempt_pre(piece))
+    # this will fail (collision)
+    print(m.attempt_pre(piece, 0, 0), "\n")
+
+    # this will also fail (collision)
+    print(m.attempt_pre(piece, 0, +1), "\n")
 
     # this will succeed
-    pid = 6
-    config = Config(np.array([-4, +2]), 0)
-    piece = Piece.from_init(pid, config)
-    print(m.attempt_pre(piece))
+    print(m.attempt_pre(piece, 0, +2), "\n")
 
-    # this is to check that pre-move does not over-drop: stops dropping
-    # immediately after all four boxes are in-field
-    pid = 6
-    config = Config(np.array([-4, +3]), 0)
-    piece = Piece.from_init(pid, config)
-    print(m.attempt_pre(piece))
+    # this will also succeed
+    print(m.attempt_pre(piece, +1, +2), "\n")
 
-    # another non-over-drop test
-    pid = 6
-    config = Config(np.array([-4, +5]), 0)
-    piece = Piece.from_init(pid, config)
-    print(m.attempt_pre(piece))
+    # this will still succeed (limit at Right-Boundary)
+    print(m.attempt_pre(piece, 0, +7), "\n")
+
+    # this will fail (Right-Boundary)
+    print(m.attempt_pre(piece, 0, +8), "\n")
 
 
 if __name__ == "__main__":
