@@ -671,6 +671,28 @@ def analyzer_boundary_test():
     print(pa.get_valid_range(1, 3, False, False))
 
 
+def analyzer_zero_pos_test():
+    ba = BoundaryAnalyzer((20, 10))
+
+    print("O-piece")
+    print(ba.get_zero_pos(0, 0))
+    print(ba.get_zero_pos(0, 1))
+    print(ba.get_zero_pos(0, 2))
+    print(ba.get_zero_pos(0, 3))
+
+    print("I-piece")
+    print(ba.get_zero_pos(1, 0))
+    print(ba.get_zero_pos(1, 1))
+    print(ba.get_zero_pos(1, 2))
+    print(ba.get_zero_pos(1, 3))
+
+    print("szljt-piece")
+    print(ba.get_zero_pos(2, 0))
+    print(ba.get_zero_pos(2, 1))
+    print(ba.get_zero_pos(2, 2))
+    print(ba.get_zero_pos(2, 3))
+
+
 def test_setup():
     from src.util.fieldfac import FieldReader
     from src.engine.placement.piece import Config
