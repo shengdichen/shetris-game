@@ -421,5 +421,72 @@ class Field:
             self._set_one(coord, new_val)
 
 
+def run_field_init():
+    from src.util.fieldfac import FieldReader
+
+    f = Field(FieldReader.read_from_file())
+    f.print_field()
+
+
+def run_boundary_checks():
+    from src.util.fieldfac import FieldReader
+
+    f = Field(FieldReader.read_from_file())
+
+    print("LR-checks")
+    print(f.exceeded_boundaries("L", np.array(((+0, +0), (+0, -1)))) is True)
+    print(f.exceeded_boundaries("L", np.array(((+0, +0), (+0, +0)))) is False)
+    print(f.exceeded_boundaries("R", np.array(((+0, +0), (+0, 10)))) is True)
+    print(f.exceeded_boundaries("R", np.array(((+0, +0), (+0, 9)))) is False)
+
+    print("UD-checks")
+    print(f.exceeded_boundaries("U", np.array(((+0, +0), (-1, +0)))) is True)
+    print(f.exceeded_boundaries("U", np.array(((+0, +0), (+0, +0)))) is False)
+    print(f.exceeded_boundaries("D", np.array(((+0, +0), (+20, +0)))) is True)
+    print(f.exceeded_boundaries("D", np.array(((+0, +0), (+19, +0)))) is False)
+
+    print("mix-checks")
+    print(f.exceeded_boundaries("R", np.array(((+0, +0), (+0, -1)))) is False)
+    print(f.exceeded_boundaries("L", np.array(((+0, +0), (+0, -1)))) is True)
+    print(f.exceeded_boundaries("L", np.array(((+0, +0), (+0, 10)))) is False)
+    print(f.exceeded_boundaries("R", np.array(((+0, +0), (+0, 10)))) is True)
+
+
+def run_collision_checks():
+    from src.util.fieldfac import FieldReader
+
+    f = Field(FieldReader.read_from_file())
+
+    print("collision checks")
+    # has collision (we have a piece at (+1, +1))
+    print(f.has_collision(np.array(((+1, +0), (+1, +1), (+1, +2), (+1, +3)))))
+    print(f.has_collision(np.array(((+1, +1), (+1, +2), (+1, +3), (+1, +4)))))
+    print(not f.has_collision(np.array(((+1, +2), (+1, +3), (+1, +4), (+1, +5)))))
+
+
+def run_lineclear():
+    from src.util.fieldfac import FieldReader
+
+    f = Field(FieldReader.read_from_file("lineclear/sample"))
+    f.print_field()
+
+    print("simulate line-clear")
+    f.lineclear(None)
+
+    f.print_field()
+
+
+def run_writeback_checks():
+    from src.util.fieldfac import FieldReader
+
+    f = Field(FieldReader.read_from_file())
+
+    print("simulate initial coord")
+    # the initial coord (after pid-generation and initial-move)
+    coords = np.array(((+1, +2), (+1, +3), (+1, +4), (+1, +5)))
+    f.set_many(coords)
+    f.print_field()
+
+
 if __name__ == "__main__":
     pass
