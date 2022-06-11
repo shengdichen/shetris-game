@@ -53,10 +53,15 @@ class Mover:
         """
 
         self._field = field
+        self._analyzer = BoundaryAnalyzer(self.field.size)
 
     @property
     def field(self):
         return self._field
+
+    @property
+    def analyzer(self):
+        return self._analyzer
 
     @staticmethod
     def _atomic_to_check_string(atomic_type: int, positive_dir: bool) -> str:
@@ -236,6 +241,30 @@ class Mover:
             atomic_mover = self.attempt_atomic_rot
 
         return atomic_mover(piece, pos_dir)
+
+    def _bad_boundary(self, piece: Piece, is_pos0: bool, pos_dir: bool) -> bool:
+        """
+        Check if one boundary has been exceeded.
+
+        :param piece:
+        :param is_pos0:
+        :param pos_dir:
+        :return: True if exceeded this boundary, False otherwise
+        """
+
+        relevant_pos_idx = 0 if is_pos0 else 1
+        relevant_pos = piece.config.pos[relevant_pos_idx]
+
+        limit = self.analyzer.get_valid_range(
+            piece.pid, piece.config.rot, is_pos0, pos_dir
+        )
+        # print("boundary check: {0} VS {1}".format(relevant_pos, limit))
+
+        if pos_dir:
+            exceeded_boundary = relevant_pos > limit
+        else:
+            exceeded_boundary = relevant_pos < limit
+        return exceeded_boundary
 
 
 class BoundaryAnalyzer:
