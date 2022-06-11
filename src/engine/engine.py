@@ -148,6 +148,23 @@ class Engine:
         self.piece = Piece.from_init(self.pid, config)
         print("Piece inited:", self.piece)
 
+    def exec_pre(self) -> None:
+        """
+        1.  Perform the pre-move with Mover:
+        2.  Use the returned result of this pre-move operation to determine if
+        game-over
+
+        :return:
+        """
+        result_pre = self.mover.attempt_pre(self.piece)
+
+        if result_pre is not None:
+            self.piece = result_pre
+            print("PRE-Phase SUCCESSFUL:", self.piece)
+        else:
+            self.is_game_over = True
+            print("PRE-Phase FAILED, GAMEOVER!")
+
     def exec_atomic(self, move_type: int, pos_dir: bool) -> None:
         """
         Handle an atomic (explicitly not a multi).
