@@ -242,6 +242,116 @@ class Mover:
 
         return atomic_mover(piece, pos_dir)
 
+    @staticmethod
+    def multi_to_dir_delta(delta: int) -> tuple[bool, int]:
+        """
+        Convert a delta-value to:
+        1.  its sign
+        2.  absolute-value
+        For calling the corresponding atomic-functions
+
+        :return: (pos_dir, abs-val of delta)
+        """
+        if delta > 0:
+            positive_dir = True
+        else:
+            positive_dir = False
+            delta = -delta
+
+        return positive_dir, delta
+
+    def attempt_multi(
+        self, move_type: int, piece: Piece, delta: int
+    ) -> Optional[Piece]:
+        """
+        Perform multi-move (multiple atomics of the same move type):
+        1.  which type of atomic;
+        2.  current piece-info;
+        3.  how many of such atomics are performed
+        This is used for bot-plays.
+
+        NOTE:
+        if the multi failed after any amount of atomic, fail the multi
+        completely, i.e., the state before the fail is NOT returned.
+
+        :param move_type: 0 for pos0, 1 for pos1; anything else for rot
+        :param piece: current piece-info
+        :param delta: signed integer:
+            i.  positive value for move in positive direction;
+            ii. negative value for move in negative direction.
+        :return:
+        """
+
+        positive_dir, delta = Mover.multi_to_dir_delta(delta)
+
+        if move_type == 0:
+            atomic_mover = self.attempt_atomic_pos0
+        elif move_type == 1:
+            atomic_mover = self.attempt_atomic_pos1
+        else:
+            atomic_mover = self.attempt_atomic_rot
+
+        for __ in range(delta):
+            result = atomic_mover(piece, positive_dir)
+            if result is None:
+                return None
+            else:
+                piece = result
+
+        return piece
+
+    def attempt_maxout(self, move_type: int, piece: Piece, pos_dir: bool) -> Piece:
+        """
+        Perform one atomic until failing. One special case of this is the
+        hard-drop.
+
+        NOTE:
+        It is up to the user to assume that the initial state is legal, i.e.,
+        before performing this max-out move, no exceeded boundaries or
+        collision.
+
+        NOTE:
+        This operation always returns a 'Piece': even if no atomic can be
+        performed at all, it will just return the passed-in piece-info, which,
+        per the previous NOTE, is by definition valid.
+
+        :param move_type: 0 for pos0, 1 for pos1; anything else for rot
+        :param piece: current piece-info
+        :param pos_dir: True for move in positive-direction, False otherwise
+        :return:
+        """
+
+        if move_type == 0:
+            atomic_mover = self.attempt_atomic_pos0
+        elif move_type == 1:
+            atomic_mover = self.attempt_atomic_pos1
+        else:
+            atomic_mover = self.attempt_atomic_rot
+
+        maxed_out = False
+        while not maxed_out:
+            result = atomic_mover(piece, pos_dir)
+            if result is None:
+                maxed_out = True
+            else:
+                piece = result
+
+        return piece
+
+    def attempt_drop(self, piece: Piece) -> Piece:
+        """
+        A razor-thin wrapper to call the max-out operation on pos0, in positive
+        direction;
+
+        NOTE:
+        Otherwise known as a "hard-drop".
+
+        :param piece:
+        :return:
+        """
+
+        return self.attempt_maxout(0, piece, True)
+
     def _bad_boundary(self, piece: Piece, is_pos0: bool, pos_dir: bool) -> bool:
         """
         Check if one boundary has been exceeded.
