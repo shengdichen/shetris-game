@@ -352,56 +352,60 @@ class Mover:
 
         return self.attempt_maxout(0, piece, True)
 
-    def attempt_pre(self, piece: Piece) -> Optional[Piece]:
+    def attempt_pre(
+        self, piece: Piece, delta_rot: int, delta_pos1: int
+    ) -> Optional[Piece]:
         """
-        After a piece is spawned, we have:
-        1.  a pid
-        2.  a config of (-4, pos1, rot) with user's pos1- and rot-input
-        We now perform a pre-move to check if this piece can be placed in
-        field:
-        1.  check if "LR" is fine
-            ->  return if failed
-        2.  as long as the piece does not satisfy the "U"-check (check the
-        upper-border), keep performing atomic-pos0-positive (let it drop):
-            ->  return NONE as soon as a collision is detected
-            ->  if no collision is detected until this drop is finished, i.e.,
-            until "U"-check is satisfied, this pre-move has succeeded
+        Conclude the PRE-phase after the new pid is available and piece-info
+        is generated from the initial (-4, 0, 0)-config. Specifically:
+        1.  apply user's rot to the initial, (-4, 0, 0)-config:
+            ->  boundary-checks: by definition of rotation, still out of the
+            "Up"-boundary (and still within "Left", "Right" and "Down")
+            ->  collision-checks: no collision apparently, since out of field
+        2.  given the piece and the rot, fetch and set to its ZERO-pos:
+            ->  the vertical pos0 is frozen until end of PRE-phase, the
+            horizontal pos1 is still manoeuvrable
+            ->  per definition of the zero-pos, this is now within all
+            boundaries
+            ->  might still collide, but deliberately not checked just now to
+            allow user's pos1 input of the next step
+        3.  apply user's input pos1 to the now ZERO-pos:
+            ->  finally, perform the "Left", "Right" boundary and collision
+            checks
+            ->  no need to check "Up" and "Down" in boundary, since the pos0
+            from ZERO-pos has not been modified
 
-        Note on implementation:
-        1.  Apparently we can either
-            1.  first keep dropping as stop as soon as all four boxes are
-            inside the field, then check if this in-field piece-info induces
-            collision
-            2.  OR: drop atomically: after every atomic-drop, check if
-            collision has happened, break immediately if this happens; end
-            until all four boxes are inside the field
-        2.  Since we expect this to pre-move to success almost at all times,
-        the second options appears to be premature pessimism: for the case
-        where this is successful, we would have performed many excessive
-        collision checks (after every atomic, instead of just once as in the
-        first case). Thus, the first option is implemented here.
+        In short:
+        1.  apply user's rotation-input
+        2.  retrieve the zero position
+        3.  apply user's pos1-input
+        4.  check boundaries and collision
 
-        :param piece: Initial move: should have (-4, pos1, rot) as config
-        :return:
+        NOTE:
+        1.  should be called shortly after init_piece()
+        2.  the passed in argument of the init-pos does not necessarily have to
+        be (-4, 0):
+            ->  it will be set to the ZERO-pos anyway
+
+        :type piece: the piece with newly generated pid and (4, 0, 0)-config
+        :param delta_pos1: multi-move delta in pos1 of PRE-phase
+        :param delta_rot: multi-move delta in rot of PRE-phase
+        :return: result of the move of PRE-phase
         """
 
-        # check that user's pos1 input does not put things out of left and
-        # right bounds
-        if self.field.exceeded_boundaries("LR", piece.coord):
-            print("LR failed")
-            return None
+        if not delta_rot == 0:
+            piece = Piece.from_multi_rot(piece, delta_rot)
 
-        # drop until the piece is completely within the field
-        in_field = False
-        while not in_field:
-            piece = Piece.from_atomic_pos0(piece, True)
-            if not self.field.exceeded_boundaries("U", piece.coord):
-                in_field = True
+        zero_pos = self.analyzer.get_zero_pos(piece.pid, piece.config.rot)
+        piece = Piece.to_absolute_pos(piece, zero_pos)
+        # print("Piece in ZERO-pos:", piece)
 
-        if self.field.has_collision(piece.coord):
+        if not delta_pos1 == 0:
+            piece = Piece.from_multi_pos1(piece, delta_pos1)
+
+        if self.bad_boundaries_collision("LR", piece):
             return None
-        else:
-            return piece
+        return piece
 
     def _bad_boundary(self, piece: Piece, is_pos0: bool, pos_dir: bool) -> bool:
         """
