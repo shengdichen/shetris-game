@@ -195,6 +195,15 @@ def run_config():
     c_tmp = c.new_from_atomic_rot(False)
     print(c_tmp)
 
+    # typical srs-attempt
+    c_tmp = c.new_from_multi_pos(np.array([10, -10]))
+    print(c_tmp)
+
+    # typical multi (by bot)
+    c_delta = Config(np.array([0, 7]), -2)
+    c_tmp = c.new_from_multi(c_delta)
+    print(c_tmp)
+
     c.assign(c_tmp)
     print(c)
 
