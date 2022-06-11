@@ -662,5 +662,20 @@ def atomic_test():
         print("Down move failed")
 
 
+def multi_test():
+    m, piece = test_setup()
+    m.field.print_field()
+    print(piece)
+
+    print("Checking multi")
+    # these two will succeed
+    piece = m.attempt_multi(1, piece, 5)
+    piece = m.attempt_multi(0, piece, 2)
+    print(piece)
+
+    # this will fail, printing nothing (None)
+    print(m.attempt_multi(1, piece, -4))
+
+
 if __name__ == "__main__":
     pass
