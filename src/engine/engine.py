@@ -190,6 +190,14 @@ class Engine:
 
         self.piece = self.mover.attempt_maxout(move_type, self.piece, pos_dir)
 
+    def exec_drop(self) -> None:
+        """
+        Execute the hard-drop
+
+        :return:
+        """
+        self.piece = self.mover.attempt_drop(self.piece)
+
 
 if __name__ == "__main__":
     pass
