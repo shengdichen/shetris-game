@@ -17,7 +17,11 @@
 #
 
 
+import math
+
 import numpy as np
+
+from src.engine.generator.base import Generator
 
 
 class _Reservoir:
@@ -75,6 +79,49 @@ class _Reservoir:
         items = self.data[0:n_items]
         self.data = self.data[1:]
         return items, self.need_refill()
+
+
+class _GeneratorBag(Generator):
+    """
+    Template for bag-based generator:
+    Give me
+    1.  a bag
+    and I will give you a sequence where:
+    a.  from the first generated item,
+    b.  for every consecutive bag-size items,
+    c.  each item of the bag appears once and once only
+
+    Notable usages are the two sub-classes implemented below.
+
+    """
+
+    refill_by = 20
+    refill_threshold = 10
+
+    # this is about 15 bags
+    # pre_load_amount = 100
+    pre_fill = 50
+
+    def __init__(self, bag: np.ndarray):
+        self._bag = bag
+        self._refill_by_bags = math.ceil(_GeneratorBag.refill_by / self.bag.size)
+
+        self._reservoir = _Reservoir(_GeneratorBag.refill_threshold)
+
+    @property
+    def bag(self):
+        return self._bag
+
+    @property
+    def refill_by_bags(self):
+        return self._refill_by_bags
+
+    @property
+    def reservoir(self):
+        return self._reservoir
+
+    def get_pids(self, n_pids: int = 2):
+        pass
 
 
 if __name__ == "__main__":
