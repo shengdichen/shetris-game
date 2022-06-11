@@ -155,5 +155,29 @@ class _GeneratorBag(Generator):
         return curr_pids
 
 
+class Shuffler(_GeneratorBag):
+    """
+    Give me
+    1.  a bag
+    and I will give you
+    1.  this bag, shuffled
+
+    Init with the bag of np.arange(7) for the currently standard "7-bag"
+    generator.
+
+    """
+
+    def __init__(self, bag: np.ndarray):
+        self._rng = np.random.default_rng()
+        super().__init__(bag)
+
+    @property
+    def rng(self):
+        return self._rng
+
+    def gen_bag(self) -> np.ndarray:
+        return self.rng.permutation(self.bag)
+
+
 if __name__ == "__main__":
     pass
