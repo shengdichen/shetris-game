@@ -749,5 +749,43 @@ def maxout_test():
     print("hard-drop:", piece)
 
 
+def premove_test():
+    from src.engine.placement.piece import Config
+
+    m, piece = test_setup()
+    m.field.print_field()
+
+    # this will fail
+    pid = 6
+    config = Config(np.array([-4, +0]), 0)
+    piece = Piece.from_init(pid, config)
+    print(m.attempt_pre(piece))
+
+    # this will also fail
+    pid = 6
+    config = Config(np.array([-4, +1]), 0)
+    piece = Piece.from_init(pid, config)
+    print(m.attempt_pre(piece))
+
+    # this will succeed
+    pid = 6
+    config = Config(np.array([-4, +2]), 0)
+    piece = Piece.from_init(pid, config)
+    print(m.attempt_pre(piece))
+
+    # this is to check that pre-move does not over-drop: stops dropping
+    # immediately after all four boxes are in-field
+    pid = 6
+    config = Config(np.array([-4, +3]), 0)
+    piece = Piece.from_init(pid, config)
+    print(m.attempt_pre(piece))
+
+    # another non-over-drop test
+    pid = 6
+    config = Config(np.array([-4, +5]), 0)
+    piece = Piece.from_init(pid, config)
+    print(m.attempt_pre(piece))
+
+
 if __name__ == "__main__":
     pass
