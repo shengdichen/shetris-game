@@ -144,7 +144,12 @@ class _GeneratorBag(Generator):
         print("Curr ready", self.reservoir.data)
 
     def get_pids(self, n_pids: int = 2):
-        pass
+        curr_pids, need_refill = self.reservoir.read_pop_check(n_pids)
+
+        if need_refill:
+            self.gen_bags(self.refill_by_bags)
+
+        return curr_pids
 
 
 if __name__ == "__main__":
