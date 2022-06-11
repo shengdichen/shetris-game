@@ -200,5 +200,18 @@ class Sequencer(_GeneratorBag):
         return self.bag
 
 
+def bag_test():
+    pool = np.array((1, 3, 4, 7))
+    # pool = np.arange(7)
+    gen = Sequencer(pool)
+
+    pids = []
+    for __ in range(21):
+        pid = gen.get_pids()
+        pids.append(pid)
+
+    print(pids)
+
+
 if __name__ == "__main__":
     pass
