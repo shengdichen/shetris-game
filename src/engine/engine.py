@@ -20,6 +20,7 @@
 import numpy as np
 
 from src.engine.generator.baggen import Sequencer
+from src.engine.placement.field import Field
 from src.engine.placement.mover import Mover
 from src.engine.placement.piece import Piece
 
@@ -53,8 +54,9 @@ class Engine:
     """
 
     def __init__(self, size: tuple[int, int]):
-        self._field = None
-        self._size = size
+        self._field = self.make_field(size)
+        self.field.print_field()
+        self._size = self.field.size
 
         self._pid = None
         self._generator = Sequencer(np.arange(7))
@@ -102,6 +104,30 @@ class Engine:
     @is_game_over.setter
     def is_game_over(self, value: bool):
         self._is_game_over = value
+
+    @staticmethod
+    def make_field(size: tuple[int, int]) -> Field:
+        """
+        Produce an all empty field of our desired size.
+
+        :return: the Field object.
+        """
+
+        from src.util.fieldfac import FieldFactory
+
+        return Field(FieldFactory.get_all_zeros(size))
+
+    @staticmethod
+    def _make_test_field() -> Field:
+        """
+        Produce the test field.
+
+        :return: the Field object.
+        """
+
+        from src.util.fieldfac import FieldReader
+
+        return Field(FieldReader.read_from_file())
 
 
 if __name__ == "__main__":
