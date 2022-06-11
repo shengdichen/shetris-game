@@ -176,6 +176,20 @@ class Engine:
         else:
             print("MULTI of: {0} @ {1} FAILED!".format(move_type, delta))
 
+    def exec_maxout(self, move_type: int, pos_dir: bool) -> None:
+        """
+        Execute a maxout
+
+        Note:
+        One special case of this is the "drop", defined below.
+
+        :param move_type: 0 for pos0, 1 for pos1; anything else for rot
+        :param pos_dir: True for move in positive-direction, False otherwise
+        :return:
+        """
+
+        self.piece = self.mover.attempt_maxout(move_type, self.piece, pos_dir)
+
 
 if __name__ == "__main__":
     pass
