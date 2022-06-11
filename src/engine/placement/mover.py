@@ -260,6 +260,46 @@ class Mover:
 
         return positive_dir, delta
 
+    def attempt_multi(
+        self, move_type: int, piece: Piece, delta: int
+    ) -> Optional[Piece]:
+        """
+        Perform multi-move (multiple atomics of the same move type):
+        1.  which type of atomic;
+        2.  current piece-info;
+        3.  how many of such atomics are performed
+        This is used for bot-plays.
+
+        NOTE:
+        if the multi failed after any amount of atomic, fail the multi
+        completely, i.e., the state before the fail is NOT returned.
+
+        :param move_type: 0 for pos0, 1 for pos1; anything else for rot
+        :param piece: current piece-info
+        :param delta: signed integer:
+            i.  positive value for move in positive direction;
+            ii. negative value for move in negative direction.
+        :return:
+        """
+
+        positive_dir, delta = Mover.multi_to_dir_delta(delta)
+
+        if move_type == 0:
+            atomic_mover = self.attempt_atomic_pos0
+        elif move_type == 1:
+            atomic_mover = self.attempt_atomic_pos1
+        else:
+            atomic_mover = self.attempt_atomic_rot
+
+        for __ in range(delta):
+            result = atomic_mover(piece, positive_dir)
+            if result is None:
+                return None
+            else:
+                piece = result
+
+        return piece
+
     def _bad_boundary(self, piece: Piece, is_pos0: bool, pos_dir: bool) -> bool:
         """
         Check if one boundary has been exceeded.
