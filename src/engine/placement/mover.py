@@ -677,5 +677,26 @@ def multi_test():
     print(m.attempt_multi(1, piece, -4))
 
 
+def maxout_test():
+    m, piece = test_setup()
+    m.field.print_field()
+
+    piece = m.attempt_multi(1, piece, 3)
+    piece = m.attempt_multi(0, piece, 1)
+    print("Initial position:", piece)
+
+    piece = m.attempt_maxout(1, piece, False)
+    print("left maxout:", piece)
+
+    piece = m.attempt_maxout(1, piece, True)
+    print("right maxout:", piece)
+    # attempting the same maxout should not change anything
+    print("right maxout, again:", m.attempt_maxout(1, piece, True))
+
+    # hard-drop
+    piece = m.attempt_maxout(0, piece, True)
+    print("hard-drop:", piece)
+
+
 if __name__ == "__main__":
     pass
