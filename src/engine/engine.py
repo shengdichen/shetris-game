@@ -22,7 +22,7 @@ import numpy as np
 from src.engine.generator.baggen import Sequencer
 from src.engine.placement.field import Field
 from src.engine.placement.mover import Mover
-from src.engine.placement.piece import Piece
+from src.engine.placement.piece import Piece, CoordFactory
 
 
 class Engine:
@@ -197,6 +197,28 @@ class Engine:
         :return:
         """
         self.piece = self.mover.attempt_drop(self.piece)
+
+    def exec_freeze(self) -> None:
+        """
+        1.  write the final coordinates of the current piece to the field
+        2.  obtain the vertical range of the piece
+        3.  trigger the line-clear operation with this vertical range
+
+        NOTE:
+        A hard-drop is intentionally not included here:
+        1.  it is up to an entry-application to make sure that a hard-drop has
+        been performed before freezing a piece
+        2.  the behavior of not hard-dropping might be desired
+
+        :return:
+        """
+
+        self.field.set_many(self.piece.coord, True)
+
+        vertical_range = CoordFactory.get_range(self.pid, self.piece.config, True)
+        self.field.lineclear(vertical_range)
+
+        self.field.print_field()
 
 
 if __name__ == "__main__":
