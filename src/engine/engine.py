@@ -220,6 +220,18 @@ class Engine:
 
         self.field.print_field()
 
+    def clean_up(self) -> None:
+        """
+        1.  perform any necessary clean-ups (non implemented here)
+        2.  quit the game
+
+        :return:
+
+        """
+
+        self.field.print_field()
+        print("Quitting Shetris.")
+
 
 if __name__ == "__main__":
     pass
