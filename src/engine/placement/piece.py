@@ -350,6 +350,45 @@ class Piece:
 
         return cls(piece.pid, config_new, coord_new)
 
+    @classmethod
+    def from_multi_pos0(cls, piece: "Piece", delta: int) -> "Piece":
+        """
+        Multi-shift in pos0.
+        You probably should not be calling this:
+        1.  Either this is a type and should be multi_pos1
+        2.  Or you should perform hard-drop instead
+
+        :param piece:
+        :param delta:
+        :return:
+        """
+
+        config_new = piece.config.new_from_multi_pos0(delta)
+        coord_new = piece.coord + np.array([delta, 0])
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def from_multi_pos1(cls, piece: "Piece", delta: int) -> "Piece":
+        """
+        Multi-shift in pos1
+
+        :param piece:
+        :param delta:
+        :return:
+        """
+        config_new = piece.config.new_from_multi_pos1(delta)
+        coord_new = piece.coord + np.array([0, delta])
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def from_multi_rot(cls, piece: "Piece", delta: int) -> "Piece":
+        config_new = piece.config.new_from_multi_rot(delta)
+        coord_new = CoordFactory.get_coord(piece.pid, config_new)
+
+        return cls(piece.pid, config_new, coord_new)
+
 
 def run_piece():
     piece = Piece()
