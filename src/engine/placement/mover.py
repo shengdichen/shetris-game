@@ -23,6 +23,7 @@ import numpy as np
 
 from src.engine.placement.field import Field
 from src.engine.placement.piece import Piece
+from src.engine.placement.srs.coord import RelCoord
 from src.engine.placement.srs.kick import Kick
 
 
@@ -52,10 +53,15 @@ class Mover:
         """
 
         self._field = field
+        self._analyzer = BoundaryAnalyzer(self.field.size)
 
     @property
     def field(self):
         return self._field
+
+    @property
+    def analyzer(self):
+        return self._analyzer
 
     @staticmethod
     def _atomic_to_check_string(atomic_type: int, positive_dir: bool) -> str:
@@ -137,7 +143,7 @@ class Mover:
             check_string = Mover._atomic_to_check_string(1, positive_dir)
             piece_new = Piece.from_atomic_pos1(piece, positive_dir)
 
-        if self._failed_boundaries_collision(check_string, piece_new.coord):
+        if self.bad_boundaries_collision(check_string, piece_new):
             return None
         return piece_new
 
@@ -180,7 +186,7 @@ class Mover:
 
         piece_new = Piece.from_atomic_rot(piece, positive_dir)
 
-        if self._failed_boundaries_collision(check_string, piece_new.coord):
+        if self.bad_boundaries_collision(check_string, piece_new):
             return self._try_srs_shifts(piece_new, positive_dir)
 
         return piece_new
@@ -206,7 +212,7 @@ class Mover:
 
         for shift in srs_shifts:
             piece_new = Piece.from_multi_pos(piece, shift)
-            if not self._failed_boundaries_collision("LRUD", piece_new.coord):
+            if not self.bad_boundaries_collision("LRUD", piece_new):
                 return piece_new
 
         return None
@@ -235,6 +241,228 @@ class Mover:
             atomic_mover = self.attempt_atomic_rot
 
         return atomic_mover(piece, pos_dir)
+
+    def _bad_boundary(self, piece: Piece, is_pos0: bool, pos_dir: bool) -> bool:
+        """
+        Check if one boundary has been exceeded.
+
+        :param piece:
+        :param is_pos0:
+        :param pos_dir:
+        :return: True if exceeded this boundary, False otherwise
+        """
+
+        relevant_pos_idx = 0 if is_pos0 else 1
+        relevant_pos = piece.config.pos[relevant_pos_idx]
+
+        limit = self.analyzer.get_valid_range(
+            piece.pid, piece.config.rot, is_pos0, pos_dir
+        )
+        # print("boundary check: {0} VS {1}".format(relevant_pos, limit))
+
+        if pos_dir:
+            exceeded_boundary = relevant_pos > limit
+        else:
+            exceeded_boundary = relevant_pos < limit
+        return exceeded_boundary
+
+    def _bad_boundaries(self, piece: Piece, check_str: str) -> bool:
+        """
+        Check if multiple boundaries have been exceeded.
+
+        :param piece:
+        :param check_str: any subset of "DURL"
+        :return:
+        """
+
+        for curr_check_str in check_str:
+            # print("checking boundary {0}".format(curr_check_str))
+            in_pos0, in_pos_dir = Mover.check_string_to_check_tuple[curr_check_str]
+            exceeded_curr = self._bad_boundary(piece, in_pos0, in_pos_dir)
+            if exceeded_curr:
+                print("Failed at {0}".format(curr_check_str))
+                return True
+
+        return False
+
+    def bad_boundaries_collision(self, check_str: str, piece: Piece):
+        """
+        Perform the standard check:
+        1.  Boundaries check
+        2.  collision check
+
+        :param check_str:
+        :param piece:
+        :return:
+        """
+
+        if self._bad_boundaries(piece, check_str):
+            return True
+        if self.field.has_collision(piece.coord):
+            print("Failed collision")
+            return True
+
+        return False
+
+
+class BoundaryAnalyzer:
+    """
+    Give me:
+    1.  a piece-info
+    And I will give you:
+    1.  Whether it's within the bound
+    """
+
+    # hard-coded data for the standard 20*10 game-field
+    # ((minimum-allowed-pos0, maximum-pos0), (min-pos1, max-pos1))
+    _std_valid_range_o = np.array(
+        (
+            ((+0, +18), (-1, +7)),
+            ((+0, +18), (-1, +7)),
+            ((+0, +18), (-1, +7)),
+            ((+0, +18), (-1, +7)),
+        )
+    )
+
+    _std_valid_range_i = np.array(
+        (
+            ((-1, +18), (+0, +6)),
+            ((+0, +16), (-1, +8)),
+            ((-2, +17), (+0, +6)),
+            ((+0, +16), (-2, +7)),
+        )
+    )
+
+    _std_valid_range_szljt = np.array(
+        (
+            ((+0, +18), (+0, +7)),
+            ((+0, +17), (+0, +8)),
+            ((-1, +17), (+0, +7)),
+            ((+0, +17), (-1, +7)),
+        )
+    )
+
+    def __init__(self, size: tuple[int, int]):
+        self._size0, self._size1 = size
+
+        if self.size0 == 20 and self.size1 == 10:
+            self._valid_range_o = BoundaryAnalyzer._std_valid_range_o
+            self._valid_range_i = BoundaryAnalyzer._std_valid_range_i
+            self._valid_range_szljt = BoundaryAnalyzer._std_valid_range_szljt
+        else:
+            self._valid_range_o = self._get_valid_range_all(RelCoord.rel_range_o)
+            self._valid_range_i = self._get_valid_range_all(RelCoord.rel_range_i)
+            self._valid_range_szljt = self._get_valid_range_all(
+                RelCoord.rel_range_szljt
+            )
+
+    @property
+    def size0(self):
+        return self._size0
+
+    @property
+    def size1(self):
+        return self._size1
+
+    @property
+    def valid_range_o(self):
+        return self._valid_range_o
+
+    @property
+    def valid_range_i(self):
+        return self._valid_range_i
+
+    @property
+    def valid_range_szljt(self):
+        return self._valid_range_szljt
+
+    def _get_valid_range_all(self, rel_range: np.ndarray) -> np.ndarray:
+        """
+        Calculate the valid range of every piece in all rotations.
+
+        :param rel_range:
+        :return:
+        """
+
+        limits = np.array(((0, self.size0), (0, self.size1)))
+        return limits - rel_range
+
+    def get_valid_range(self, pid: int, rot: int, is_pos0: bool, pos_dir: bool):
+        """
+        Get the valid range of a piece, in the sense that it stays within
+        the boundary of the field
+
+        Usage:
+        Check exceeded boundary with:
+            pos0 in range0
+            pos1 in range1
+
+
+        :param pid:
+        :param rot:
+        :param is_pos0:
+        :param pos_dir:
+        :return:
+        """
+
+        if pid == 0:
+            valid_range_all = self.valid_range_o[rot]
+        elif pid == 1:
+            valid_range_all = self.valid_range_i[rot]
+        else:
+            valid_range_all = self.valid_range_szljt[rot]
+
+        idx_pos = 0 if is_pos0 else 1
+        idx_dir = 1 if pos_dir else 0
+
+        return valid_range_all[idx_pos][idx_dir]
+
+
+def analyzer_boundary_test():
+    from src.engine.placement.piece import Config, Piece
+
+    pid = 4
+    config = Config(np.array([10, 2]), 3)
+    piece = Piece.from_init(pid, config)
+    print(piece)
+
+    pa = BoundaryAnalyzer((20, 10))
+
+    # all the valid ranges
+    print("valid-range o")
+    print(pa.valid_range_o)
+    print("valid-range i")
+    print(pa.valid_range_i)
+    print("valid-range others")
+    print(pa.valid_range_szljt)
+
+    # D
+    print("Down")
+    print(pa.get_valid_range(1, 0, True, True))
+    print(pa.get_valid_range(1, 1, True, True))
+    print(pa.get_valid_range(1, 2, True, True))
+    print(pa.get_valid_range(1, 3, True, True))
+
+    # U
+    print("Up")
+    print(pa.get_valid_range(1, 0, True, False))
+    print(pa.get_valid_range(1, 1, True, False))
+    print(pa.get_valid_range(1, 2, True, False))
+    print(pa.get_valid_range(1, 3, True, False))
+
+    # R
+    print("Right")
+    print(pa.get_valid_range(1, 0, False, True))
+    print(pa.get_valid_range(1, 1, False, True))
+    print(pa.get_valid_range(1, 2, False, True))
+    print(pa.get_valid_range(1, 3, False, True))
+
+    # L
+    print("Left")
+    print(pa.get_valid_range(1, 0, False, False))
+    print(pa.get_valid_range(1, 1, False, False))
+    print(pa.get_valid_range(1, 2, False, False))
+    print(pa.get_valid_range(1, 3, False, False))
 
 
 def test_setup():
