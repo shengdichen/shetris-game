@@ -389,6 +389,56 @@ class Piece:
 
         return cls(piece.pid, config_new, coord_new)
 
+    @classmethod
+    def from_multi_pos(cls, piece: "Piece", delta: np.ndarray):
+        """
+        Used after an attempted srs-shift.
+
+        :param piece: current piece
+        :param delta: composite-move, i.e., delta of (pos0, pos1)
+        :return:
+        """
+
+        config_new = piece.config.new_from_multi_pos(delta)
+        coord_new = piece.coord + delta
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def from_multi_pos1_rot(
+        cls, piece: "Piece", delta_pos1: int, delta_rot: int
+    ) -> "Piece":
+        """
+        Used for
+        1.  every bot-move
+        2.  the pre-move
+
+        :param piece:
+        :param delta_pos1: Implicitly assumed to be not 0
+        :param delta_rot: Implicitly assuemd to be not 0
+        :return:
+        """
+
+        config_new = piece.config.new_from_multi_pos1_rot(delta_pos1, delta_rot)
+        coord_new = CoordFactory.get_coord(piece.pid, config_new)
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def from_multi(cls, piece: "Piece", delta: Config) -> "Piece":
+        """
+        Used after a multi. Typically a bot-move.
+
+        :param piece:
+        :param delta:
+        :return:
+        """
+
+        config_new = piece.config.new_from_multi(delta)
+        coord_new = CoordFactory.get_coord(piece.pid, config_new)
+
+        return cls(piece.pid, config_new, coord_new)
+
 
 def run_piece():
     piece = Piece()
