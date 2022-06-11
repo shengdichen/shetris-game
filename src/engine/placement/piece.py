@@ -123,6 +123,47 @@ class Config:
 
         return Config(self.pos, self.rot + delta)
 
+    def new_from_multi_pos(self, delta: np.ndarray):
+        """
+        Create new from change in (pos0, pos1).
+        Used for trying out srs-shift candidates
+
+        :param delta:
+        :return:
+        """
+
+        return Config(self.pos + delta, self.rot)
+
+    def new_from_multi_pos1_rot(self, delta_pos1: int, delta_rot: int) -> "Config":
+        """
+        Create new from change in (pos1, rot).
+        Used for every:
+        1.  bot-move
+        2.  pre-move
+
+        :param delta_pos1:
+        :param delta_rot:
+        :return:
+        """
+
+        return Config(self.pos + np.array((0, delta_pos1)), self.rot + delta_rot)
+
+    def new_from_multi(self, delta: "Config"):
+        """
+        factory: create new after shifting from delta; the new pos is copied
+        with np.copy(); thus no worries about safety
+
+        :param delta: change by this config
+        :return: a new config-object
+        """
+
+        pos_delta, rot_delta = Config.unpack(delta)
+
+        return Config(
+            self.pos + pos_delta,
+            self.rot + rot_delta,
+        )
+
     def assign(self, config_new: "Config") -> None:
         """
         Modify self to take over another config.
@@ -152,6 +193,15 @@ def run_config():
 
     # typical atomic
     c_tmp = c.new_from_atomic_rot(False)
+    print(c_tmp)
+
+    # typical srs-attempt
+    c_tmp = c.new_from_multi_pos(np.array([10, -10]))
+    print(c_tmp)
+
+    # typical multi (by bot)
+    c_delta = Config(np.array([0, 7]), -2)
+    c_tmp = c.new_from_multi(c_delta)
     print(c_tmp)
 
     c.assign(c_tmp)
@@ -300,6 +350,116 @@ class Piece:
 
         return cls(piece.pid, config_new, coord_new)
 
+    @classmethod
+    def from_multi_pos0(cls, piece: "Piece", delta: int) -> "Piece":
+        """
+        Multi-shift in pos0.
+        You probably should not be calling this:
+        1.  Either this is a type and should be multi_pos1
+        2.  Or you should perform hard-drop instead
+
+        :param piece:
+        :param delta:
+        :return:
+        """
+
+        config_new = piece.config.new_from_multi_pos0(delta)
+        coord_new = piece.coord + np.array([delta, 0])
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def from_multi_pos1(cls, piece: "Piece", delta: int) -> "Piece":
+        """
+        Multi-shift in pos1
+
+        :param piece:
+        :param delta:
+        :return:
+        """
+        config_new = piece.config.new_from_multi_pos1(delta)
+        coord_new = piece.coord + np.array([0, delta])
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def from_multi_rot(cls, piece: "Piece", delta: int) -> "Piece":
+        config_new = piece.config.new_from_multi_rot(delta)
+        coord_new = CoordFactory.get_coord(piece.pid, config_new)
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def from_multi_pos(cls, piece: "Piece", delta: np.ndarray):
+        """
+        Used after an attempted srs-shift.
+
+        :param piece: current piece
+        :param delta: composite-move, i.e., delta of (pos0, pos1)
+        :return:
+        """
+
+        config_new = piece.config.new_from_multi_pos(delta)
+        coord_new = piece.coord + delta
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def from_multi_pos1_rot(
+        cls, piece: "Piece", delta_pos1: int, delta_rot: int
+    ) -> "Piece":
+        """
+        Used for
+        1.  every bot-move
+        2.  the pre-move
+
+        :param piece:
+        :param delta_pos1: Implicitly assumed to be not 0
+        :param delta_rot: Implicitly assuemd to be not 0
+        :return:
+        """
+
+        config_new = piece.config.new_from_multi_pos1_rot(delta_pos1, delta_rot)
+        coord_new = CoordFactory.get_coord(piece.pid, config_new)
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def from_multi(cls, piece: "Piece", delta: Config) -> "Piece":
+        """
+        Used after a multi. Typically a bot-move.
+
+        :param piece:
+        :param delta:
+        :return:
+        """
+
+        config_new = piece.config.new_from_multi(delta)
+        coord_new = CoordFactory.get_coord(piece.pid, config_new)
+
+        return cls(piece.pid, config_new, coord_new)
+
+    @classmethod
+    def to_absolute(cls, piece: "Piece", target: Config) -> "Piece":
+        curr_config = piece.config
+        diff_config = Config(target.pos - curr_config.pos, target.rot - curr_config.rot)
+
+        return Piece.from_multi(piece, diff_config)
+
+    @classmethod
+    def to_absolute_pos(cls, piece: "Piece", target_pos: np.ndarray):
+        """
+        Used in the init-phase to fetch in the ZERO-position.
+
+        :param piece:
+        :param target_pos:
+        :return:
+        """
+        curr_pos = piece.config.pos
+        diff_pos = target_pos - curr_pos
+
+        return Piece.from_multi_pos(piece, diff_pos)
+
 
 def run_piece():
     piece = Piece()
@@ -314,6 +474,13 @@ def run_piece():
 
     # perform atomic-rot
     piece = Piece.from_atomic_rot(piece, True)
+    print(piece)
+
+    # assuming atomic-rot failed: try srs-shift
+    piece = Piece.from_multi_pos(piece, np.array((1, 2)))
+    print(piece)
+
+    piece = Piece.to_absolute_pos(piece, np.array((1, 7)))
     print(piece)
 
 
