@@ -242,6 +242,24 @@ class Mover:
 
         return atomic_mover(piece, pos_dir)
 
+    @staticmethod
+    def multi_to_dir_delta(delta: int) -> tuple[bool, int]:
+        """
+        Convert a delta-value to:
+        1.  its sign
+        2.  absolute-value
+        For calling the corresponding atomic-functions
+
+        :return: (pos_dir, abs-val of delta)
+        """
+        if delta > 0:
+            positive_dir = True
+        else:
+            positive_dir = False
+            delta = -delta
+
+        return positive_dir, delta
+
     def _bad_boundary(self, piece: Piece, is_pos0: bool, pos_dir: bool) -> bool:
         """
         Check if one boundary has been exceeded.
