@@ -300,6 +300,44 @@ class Mover:
 
         return piece
 
+    def attempt_maxout(self, move_type: int, piece: Piece, pos_dir: bool) -> Piece:
+        """
+        Perform one atomic until failing. One special case of this is the
+        hard-drop.
+
+        NOTE:
+        It is up to the user to assume that the initial state is legal, i.e.,
+        before performing this max-out move, no exceeded boundaries or
+        collision.
+
+        NOTE:
+        This operation always returns a 'Piece': even if no atomic can be
+        performed at all, it will just return the passed-in piece-info, which,
+        per the previous NOTE, is by definition valid.
+
+        :param move_type: 0 for pos0, 1 for pos1; anything else for rot
+        :param piece: current piece-info
+        :param pos_dir: True for move in positive-direction, False otherwise
+        :return:
+        """
+
+        if move_type == 0:
+            atomic_mover = self.attempt_atomic_pos0
+        elif move_type == 1:
+            atomic_mover = self.attempt_atomic_pos1
+        else:
+            atomic_mover = self.attempt_atomic_rot
+
+        maxed_out = False
+        while not maxed_out:
+            result = atomic_mover(piece, pos_dir)
+            if result is None:
+                maxed_out = True
+            else:
+                piece = result
+
+        return piece
+
     def _bad_boundary(self, piece: Piece, is_pos0: bool, pos_dir: bool) -> bool:
         """
         Check if one boundary has been exceeded.
