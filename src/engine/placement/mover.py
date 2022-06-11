@@ -590,6 +590,53 @@ def test_setup():
     return m, piece
 
 
+def boundary_test():
+    m, piece = test_setup()
+    m.field.print_field()
+
+    # Right, within boundary
+    piece = Piece.to_absolute_pos(piece, np.array((0, 6)))
+    print(piece)
+    print(m.bad_boundaries_collision("DURL", piece))
+    # Right, OUTSIDE boundary
+    piece = Piece.to_absolute_pos(piece, np.array((0, 7)))
+    print(piece)
+    print(m.bad_boundaries_collision("DURL", piece))
+
+    # LEFT, within boundary
+    piece = Piece.to_absolute_pos(piece, np.array((5, 0)))
+    print(piece)
+    print(m.bad_boundaries_collision("DURL", piece))
+
+    # LEFT, OUTSIDE
+    piece = Piece.to_absolute_pos(piece, np.array((5, -1)))
+    print(piece)
+    print(m.bad_boundaries_collision("DURL", piece))
+
+    # NOTE:
+    # the following code demonstrates direct usage of boundary-checks, avoid if
+    # possible as the boundary-collision check short-circuits with the
+    # boundary-checks performed first anyway
+    #
+    # # Up, within boundary
+    # Piece.to_absolute_pos(piece, np.array((-1, 0)))
+    # print(piece)
+    # print(m._bad_boundary(piece, True, False))
+    # # Up, OUTSIDE boundary
+    # piece = Piece.to_absolute_pos(piece, np.array((-2, 0)))
+    # print(piece)
+    # print(m._bad_boundary(piece, True, False))
+    #
+    # # Down, within boundary
+    # piece = Piece.to_absolute_pos(piece, np.array((18, 0)))
+    # print(piece)
+    # print(m._bad_boundary(piece, True, True))
+    # # Up, OUTSIDE boundary
+    # piece = Piece.to_absolute_pos(piece, np.array((19, 0)))
+    # print(piece)
+    # print(m._bad_boundary(piece, True, True))
+
+
 def atomic_test():
     m, piece = test_setup()
     m.field.print_field()
@@ -613,6 +660,42 @@ def atomic_test():
         print(piece)
     else:
         print("Down move failed")
+
+
+def multi_test():
+    m, piece = test_setup()
+    m.field.print_field()
+    print(piece)
+
+    print("Checking multi")
+    # these two will succeed
+    piece = m.attempt_multi(1, piece, 5)
+    piece = m.attempt_multi(0, piece, 2)
+    print(piece)
+
+    # this will fail, printing nothing (None)
+    print(m.attempt_multi(1, piece, -4))
+
+
+def maxout_test():
+    m, piece = test_setup()
+    m.field.print_field()
+
+    piece = m.attempt_multi(1, piece, 3)
+    piece = m.attempt_multi(0, piece, 1)
+    print("Initial position:", piece)
+
+    piece = m.attempt_maxout(1, piece, False)
+    print("left maxout:", piece)
+
+    piece = m.attempt_maxout(1, piece, True)
+    print("right maxout:", piece)
+    # attempting the same maxout should not change anything
+    print("right maxout, again:", m.attempt_maxout(1, piece, True))
+
+    # hard-drop
+    piece = m.attempt_maxout(0, piece, True)
+    print("hard-drop:", piece)
 
 
 if __name__ == "__main__":
