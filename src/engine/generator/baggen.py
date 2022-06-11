@@ -108,6 +108,9 @@ class _GeneratorBag(Generator):
 
         self._reservoir = _Reservoir(_GeneratorBag.refill_threshold)
 
+        # pre-fill the reservoir
+        self.gen_bags(math.ceil(_GeneratorBag.pre_fill / self.bag.size))
+
     @property
     def bag(self):
         return self._bag
