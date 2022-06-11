@@ -351,6 +351,53 @@ class BoundaryAnalyzer:
         return valid_range_all[idx_pos][idx_dir]
 
 
+def analyzer_boundary_test():
+    from src.engine.placement.piece import Config, Piece
+
+    pid = 4
+    config = Config(np.array([10, 2]), 3)
+    piece = Piece.from_init(pid, config)
+    print(piece)
+
+    pa = BoundaryAnalyzer((20, 10))
+
+    # all the valid ranges
+    print("valid-range o")
+    print(pa.valid_range_o)
+    print("valid-range i")
+    print(pa.valid_range_i)
+    print("valid-range others")
+    print(pa.valid_range_szljt)
+
+    # D
+    print("Down")
+    print(pa.get_valid_range(1, 0, True, True))
+    print(pa.get_valid_range(1, 1, True, True))
+    print(pa.get_valid_range(1, 2, True, True))
+    print(pa.get_valid_range(1, 3, True, True))
+
+    # U
+    print("Up")
+    print(pa.get_valid_range(1, 0, True, False))
+    print(pa.get_valid_range(1, 1, True, False))
+    print(pa.get_valid_range(1, 2, True, False))
+    print(pa.get_valid_range(1, 3, True, False))
+
+    # R
+    print("Right")
+    print(pa.get_valid_range(1, 0, False, True))
+    print(pa.get_valid_range(1, 1, False, True))
+    print(pa.get_valid_range(1, 2, False, True))
+    print(pa.get_valid_range(1, 3, False, True))
+
+    # L
+    print("Left")
+    print(pa.get_valid_range(1, 0, False, False))
+    print(pa.get_valid_range(1, 1, False, False))
+    print(pa.get_valid_range(1, 2, False, False))
+    print(pa.get_valid_range(1, 3, False, False))
+
+
 def test_setup():
     from src.util.fieldfac import FieldReader
     from src.engine.placement.piece import Config
