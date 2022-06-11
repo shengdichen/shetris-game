@@ -143,7 +143,7 @@ class Mover:
             check_string = Mover._atomic_to_check_string(1, positive_dir)
             piece_new = Piece.from_atomic_pos1(piece, positive_dir)
 
-        if self._failed_boundaries_collision(check_string, piece_new.coord):
+        if self.bad_boundaries_collision(check_string, piece_new):
             return None
         return piece_new
 
@@ -186,7 +186,7 @@ class Mover:
 
         piece_new = Piece.from_atomic_rot(piece, positive_dir)
 
-        if self._failed_boundaries_collision(check_string, piece_new.coord):
+        if self.bad_boundaries_collision(check_string, piece_new):
             return self._try_srs_shifts(piece_new, positive_dir)
 
         return piece_new
@@ -212,7 +212,7 @@ class Mover:
 
         for shift in srs_shifts:
             piece_new = Piece.from_multi_pos(piece, shift)
-            if not self._failed_boundaries_collision("LRUD", piece_new.coord):
+            if not self.bad_boundaries_collision("LRUD", piece_new):
                 return piece_new
 
         return None
