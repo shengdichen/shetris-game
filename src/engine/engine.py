@@ -129,6 +129,29 @@ class Engine:
 
         return Field(FieldReader.read_from_file())
 
+    def exec_atomic(self, move_type: int, pos_dir: bool) -> None:
+        """
+        Handle an atomic (explicitly not a multi).
+
+        Side-effects:
+        1.  if move successful: self.piece is modified;
+        2.  if move failed: self.piece is not modified.
+
+        :param move_type: 0 for pos0, 1 for pos1; everything else for rot
+        :type pos_dir: True if in positive-dir, False otherwise
+        in negative direction)
+        :return:
+        """
+
+        piece_new = self.mover.attempt_atomic(move_type, self.piece, pos_dir)
+
+        if piece_new is not None:
+            self.piece = piece_new
+            print(self.piece)
+            print("ATOMIC of: {0} @ {1} successful".format(move_type, pos_dir))
+        else:
+            print("ATOMIC of: {0} @ {1} FAILED!".format(move_type, pos_dir))
+
 
 if __name__ == "__main__":
     pass
