@@ -152,6 +152,30 @@ class Engine:
         else:
             print("ATOMIC of: {0} @ {1} FAILED!".format(move_type, pos_dir))
 
+    def exec_multi(self, move_type: int, delta: int) -> None:
+        """
+        Handle a move: a thin wrapper of the mover:
+        1.  atomic.
+        2.  or multi.
+        Side-effects:
+        1.  if move successful: self.piece is modified;
+        2.  if move failed: self.piece is not modified.
+
+        :param move_type: 0 for pos0, 1 for pos1; everything else for rot
+        :param delta: how much to move (positive values in positive direction;
+        negative ones in negative direction)
+        :return:
+        """
+
+        piece_new = self.mover.attempt_multi(move_type, self.piece, delta)
+
+        if piece_new is not None:
+            self.piece = piece_new
+            print(self.piece)
+            print("MULTI of: {0} @ {1} successful".format(move_type, delta))
+        else:
+            print("MULTI of: {0} @ {1} FAILED!".format(move_type, delta))
+
 
 if __name__ == "__main__":
     pass
