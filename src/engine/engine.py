@@ -148,15 +148,16 @@ class Engine:
         self.piece = Piece.from_init(self.pid, config)
         print("Piece inited:", self.piece)
 
-    def exec_pre(self) -> None:
+    def exec_pre(self, delta_rot: int, delta_pos1: int) -> None:
         """
-        1.  Perform the pre-move with Mover:
-        2.  Use the returned result of this pre-move operation to determine if
-        game-over
+        Handle the PRE-phase after init_piece() has been called, which
+        guarantees the new pid and the piece-info based on the init-config of
+        (-4, 0, 0)
 
         :return:
         """
-        result_pre = self.mover.attempt_pre(self.piece)
+
+        result_pre = self.mover.attempt_pre(self.piece, delta_rot, delta_pos1)
 
         if result_pre is not None:
             self.piece = result_pre
