@@ -123,6 +123,47 @@ class Config:
 
         return Config(self.pos, self.rot + delta)
 
+    def new_from_multi_pos(self, delta: np.ndarray):
+        """
+        Create new from change in (pos0, pos1).
+        Used for trying out srs-shift candidates
+
+        :param delta:
+        :return:
+        """
+
+        return Config(self.pos + delta, self.rot)
+
+    def new_from_multi_pos1_rot(self, delta_pos1: int, delta_rot: int) -> "Config":
+        """
+        Create new from change in (pos1, rot).
+        Used for every:
+        1.  bot-move
+        2.  pre-move
+
+        :param delta_pos1:
+        :param delta_rot:
+        :return:
+        """
+
+        return Config(self.pos + np.array((0, delta_pos1)), self.rot + delta_rot)
+
+    def new_from_multi(self, delta: "Config"):
+        """
+        factory: create new after shifting from delta; the new pos is copied
+        with np.copy(); thus no worries about safety
+
+        :param delta: change by this config
+        :return: a new config-object
+        """
+
+        pos_delta, rot_delta = Config.unpack(delta)
+
+        return Config(
+            self.pos + pos_delta,
+            self.rot + rot_delta,
+        )
+
     def assign(self, config_new: "Config") -> None:
         """
         Modify self to take over another config.
