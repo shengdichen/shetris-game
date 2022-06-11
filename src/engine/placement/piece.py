@@ -476,6 +476,13 @@ def run_piece():
     piece = Piece.from_atomic_rot(piece, True)
     print(piece)
 
+    # assuming atomic-rot failed: try srs-shift
+    piece = Piece.from_multi_pos(piece, np.array((1, 2)))
+    print(piece)
+
+    piece = Piece.to_absolute_pos(piece, np.array((1, 7)))
+    print(piece)
+
 
 class CoordFactory:
     """
