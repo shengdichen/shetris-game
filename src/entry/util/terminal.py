@@ -60,5 +60,12 @@ class _InputConverter:
             return 0
 
 
+def input_converter_test():
+    ic = _InputConverter
+
+    print(ic.prompt_pre_rot())
+    print(ic.prompt_pre_pos1(np.array((1, 9))))
+
+
 if __name__ == "__main__":
     pass
