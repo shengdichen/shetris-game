@@ -17,6 +17,9 @@
 #
 
 
+import numpy as np
+
+
 class _InputConverter:
     """
     Give me:
@@ -37,6 +40,24 @@ class _InputConverter:
         """
 
         return tuple(map(int, move_input.split()))
+
+    @staticmethod
+    def prompt_pre_rot() -> int:
+        move_input = input("Give me the pre-rot: (delta_rot)")
+        if move_input:
+            return _InputConverter._string_to_ints(move_input)[0]
+        else:
+            return 0
+
+    @staticmethod
+    def prompt_pre_pos1(valid_range: np.ndarray) -> int:
+        move_input = input(
+            "Give me the pre-pos1: (delta_pos1) within {0}".format(valid_range)
+        )
+        if move_input:
+            return _InputConverter._string_to_ints(move_input)[0]
+        else:
+            return 0
 
 
 if __name__ == "__main__":
