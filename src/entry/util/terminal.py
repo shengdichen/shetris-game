@@ -19,6 +19,8 @@
 
 import numpy as np
 
+from src.engine.engine import Engine
+
 
 class _InputConverter:
     """
@@ -65,6 +67,62 @@ def input_converter_test():
 
     print(ic.prompt_pre_rot())
     print(ic.prompt_pre_pos1(np.array((1, 9))))
+
+
+class InteractorTerminal:
+    """
+    Handle all the pre-processing between:
+    1.  a human's input to terminal
+    2.  the engine
+    in the raw, prompt-and-type fashion.
+
+    """
+
+    @staticmethod
+    def pre_rot(engine: Engine) -> tuple[int, np.ndarray]:
+        """
+        First part (of two) of the PRE-phase:
+        1.  Fetch the rot from input
+        2.  Get the resultant pos1-limit
+            ->  shifted to (0, *), i.e., always non-negative
+
+        :param engine:
+        :return: the pre-rot and the valid-range
+        """
+
+        pre_rot = _InputConverter.prompt_pre_rot()
+
+        valid_range_shifted = engine.mover.analyzer.get_shifted_range1(
+            engine.piece.pid, pre_rot
+        )
+
+        return pre_rot, valid_range_shifted
+
+    @staticmethod
+    def pre_pos1(valid_range: np.ndarray) -> int:
+        """
+        Second part (of two) of the PRE-phase:
+        1.  Fetch the pos1 from input
+
+        :param valid_range:
+        :return:
+        """
+
+        return _InputConverter.prompt_pre_pos1(valid_range)
+
+    @staticmethod
+    def pre(engine: Engine) -> tuple[int, int]:
+        """
+        The PRE-phase
+
+        :param engine:
+        :return:
+        """
+
+        pre_rot, valid_range = InteractorTerminal.pre_rot(engine)
+        pre_pos1 = InteractorTerminal.pre_pos1(valid_range)
+
+        return pre_rot, pre_pos1
 
 
 if __name__ == "__main__":
