@@ -352,6 +352,61 @@ class Mover:
 
         return self.attempt_maxout(0, piece, True)
 
+    def attempt_pre(
+        self, piece: Piece, delta_rot: int, delta_pos1: int
+    ) -> Optional[Piece]:
+        """
+        Conclude the PRE-phase after the new pid is available and piece-info
+        is generated from the initial (-4, 0, 0)-config. Specifically:
+        1.  apply user's rot to the initial, (-4, 0, 0)-config:
+            ->  boundary-checks: by definition of rotation, still out of the
+            "Up"-boundary (and still within "Left", "Right" and "Down")
+            ->  collision-checks: no collision apparently, since out of field
+        2.  given the piece and the rot, fetch and set to its ZERO-pos:
+            ->  the vertical pos0 is frozen until end of PRE-phase, the
+            horizontal pos1 is still manoeuvrable
+            ->  per definition of the zero-pos, this is now within all
+            boundaries
+            ->  might still collide, but deliberately not checked just now to
+            allow user's pos1 input of the next step
+        3.  apply user's input pos1 to the now ZERO-pos:
+            ->  finally, perform the "Left", "Right" boundary and collision
+            checks
+            ->  no need to check "Up" and "Down" in boundary, since the pos0
+            from ZERO-pos has not been modified
+
+        In short:
+        1.  apply user's rotation-input
+        2.  retrieve the zero position
+        3.  apply user's pos1-input
+        4.  check boundaries and collision
+
+        NOTE:
+        1.  should be called shortly after init_piece()
+        2.  the passed in argument of the init-pos does not necessarily have to
+        be (-4, 0):
+            ->  it will be set to the ZERO-pos anyway
+
+        :type piece: the piece with newly generated pid and (4, 0, 0)-config
+        :param delta_pos1: multi-move delta in pos1 of PRE-phase
+        :param delta_rot: multi-move delta in rot of PRE-phase
+        :return: result of the move of PRE-phase
+        """
+
+        if not delta_rot == 0:
+            piece = Piece.from_multi_rot(piece, delta_rot)
+
+        zero_pos = self.analyzer.get_zero_pos(piece.pid, piece.config.rot)
+        piece = Piece.to_absolute_pos(piece, zero_pos)
+        # print("Piece in ZERO-pos:", piece)
+
+        if not delta_pos1 == 0:
+            piece = Piece.from_multi_pos1(piece, delta_pos1)
+
+        if self.bad_boundaries_collision("LR", piece):
+            return None
+        return piece
+
     def _bad_boundary(self, piece: Piece, is_pos0: bool, pos_dir: bool) -> bool:
         """
         Check if one boundary has been exceeded.
@@ -497,6 +552,51 @@ class BoundaryAnalyzer:
         limits = np.array(((0, self.size0), (0, self.size1)))
         return limits - rel_range
 
+    def get_zero_pos(self, pid: int, rot: int) -> np.ndarray:
+        """
+        Get the:
+        1.  Up-most
+        2.  AND left-most
+        reference-pos for a piece in some rotation, referred to as the
+        "ZERO"-ref-pos.
+
+        NOTE:
+        The knowledge of this particular "ZERO" ref-pos is critical for the
+        PRE-phase:
+        1.  after pid has been generated, and user's input for rot for the
+        pre-phase has been processed
+        2.  before the user's input for pos1 is processed
+
+        NOTE:
+        Significance of the ZERO-pos:
+        1.  Once a piece is in zero-pos, the immediately following input of:
+                SHIFT in pos0 and pos1
+            is exactly equal to the resultant
+                ABSOLUTE-VALUE in pos0 and pos1
+            subject of course to subsequent boundary & collision checks
+        2.  As a consequence, the
+                static(!) valid-range of the ref-pos
+            of this piece in this rot, as provided by the SRS-data, is directly
+            equal to the
+                valid INPUT range
+        As a result, setting a piece to the ZERO-pos literally sets the pos of
+        a piece to its (additive) 0-position, such that subsequent shift inputs
+        (in pos) equates to the final, absolute state (in pos).
+
+        :param pid:
+        :param rot:
+        :return:
+        """
+
+        if pid == 0:
+            valid_range_all = self.valid_range_o[rot]
+        elif pid == 1:
+            valid_range_all = self.valid_range_i[rot]
+        else:
+            valid_range_all = self.valid_range_szljt[rot]
+
+        return np.array((valid_range_all[0][0], valid_range_all[1][0]))
+
     def get_valid_range(self, pid: int, rot: int, is_pos0: bool, pos_dir: bool):
         """
         Get the valid range of a piece, in the sense that it stays within
@@ -573,6 +673,28 @@ def analyzer_boundary_test():
     print(pa.get_valid_range(1, 1, False, False))
     print(pa.get_valid_range(1, 2, False, False))
     print(pa.get_valid_range(1, 3, False, False))
+
+
+def analyzer_zero_pos_test():
+    ba = BoundaryAnalyzer((20, 10))
+
+    print("O-piece")
+    print(ba.get_zero_pos(0, 0))
+    print(ba.get_zero_pos(0, 1))
+    print(ba.get_zero_pos(0, 2))
+    print(ba.get_zero_pos(0, 3))
+
+    print("I-piece")
+    print(ba.get_zero_pos(1, 0))
+    print(ba.get_zero_pos(1, 1))
+    print(ba.get_zero_pos(1, 2))
+    print(ba.get_zero_pos(1, 3))
+
+    print("szljt-piece")
+    print(ba.get_zero_pos(2, 0))
+    print(ba.get_zero_pos(2, 1))
+    print(ba.get_zero_pos(2, 2))
+    print(ba.get_zero_pos(2, 3))
 
 
 def test_setup():
@@ -696,6 +818,35 @@ def maxout_test():
     # hard-drop
     piece = m.attempt_maxout(0, piece, True)
     print("hard-drop:", piece)
+
+
+def premove_test():
+    from src.engine.placement.piece import Config
+
+    m, piece = test_setup()
+    m.field.print_field()
+
+    pid = 6
+    config = Config(np.array([-4, +0]), 0)
+    piece = Piece.from_init(pid, config)
+
+    # this will fail (collision)
+    print(m.attempt_pre(piece, 0, 0), "\n")
+
+    # this will also fail (collision)
+    print(m.attempt_pre(piece, 0, +1), "\n")
+
+    # this will succeed
+    print(m.attempt_pre(piece, 0, +2), "\n")
+
+    # this will also succeed
+    print(m.attempt_pre(piece, +1, +2), "\n")
+
+    # this will still succeed (limit at Right-Boundary)
+    print(m.attempt_pre(piece, 0, +7), "\n")
+
+    # this will fail (Right-Boundary)
+    print(m.attempt_pre(piece, 0, +8), "\n")
 
 
 if __name__ == "__main__":

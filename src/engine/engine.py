@@ -22,7 +22,7 @@ import numpy as np
 from src.engine.generator.baggen import Sequencer
 from src.engine.placement.field import Field
 from src.engine.placement.mover import Mover
-from src.engine.placement.piece import Piece, CoordFactory
+from src.engine.placement.piece import Piece, CoordFactory, Config
 
 
 class Engine:
@@ -128,6 +128,43 @@ class Engine:
         from src.util.fieldfac import FieldReader
 
         return Field(FieldReader.read_from_file())
+
+    def init_piece(self) -> None:
+        """
+        The init-part of the PRE-phase:
+        1.  generate a new pid
+        2.  set to the (default) initial-config (-4, 0, 0);
+            ->  boundary-checks: only out of the "Up"-boundary (by definition
+            of the config- and SRS-model, always within the "Left" and "Right"
+            boundary; and trivially within the "Down"-boundary)
+            ->  collision-checks: no collision apparently, since out of field
+        3.  Generate the corresponding piece-info
+
+        """
+
+        self.pid = self.generator.get_pids()[0]
+
+        config = Config(np.array([-4, +0]), +0)
+        self.piece = Piece.from_init(self.pid, config)
+        print("Piece inited:", self.piece)
+
+    def exec_pre(self, delta_rot: int, delta_pos1: int) -> None:
+        """
+        Handle the PRE-phase after init_piece() has been called, which
+        guarantees the new pid and the piece-info based on the init-config of
+        (-4, 0, 0)
+
+        :return:
+        """
+
+        result_pre = self.mover.attempt_pre(self.piece, delta_rot, delta_pos1)
+
+        if result_pre is not None:
+            self.piece = result_pre
+            print("PRE-Phase SUCCESSFUL:", self.piece)
+        else:
+            self.is_game_over = True
+            print("PRE-Phase FAILED, GAMEOVER!")
 
     def exec_atomic(self, move_type: int, pos_dir: bool) -> None:
         """
