@@ -20,9 +20,11 @@
 import numpy as np
 
 from src.engine.generator.baggen import Sequencer
+from src.engine.generator.base import Generator
 from src.engine.placement.field import Field
 from src.engine.placement.mover import Mover
 from src.engine.placement.piece import Piece, CoordFactory, Config
+from src.util.fieldfac import FieldFactory
 
 
 class Engine:
@@ -85,6 +87,10 @@ class Engine:
     def generator(self):
         return self._generator
 
+    @generator.setter
+    def generator(self, value: Generator):
+        self._generator = value
+
     @property
     def piece(self):
         return self._piece
@@ -105,6 +111,20 @@ class Engine:
     def is_game_over(self, value: bool):
         self._is_game_over = value
 
+    def reset(self) -> None:
+        """
+        A collection of default-resetting:
+        1.  make the field all-zero
+        2.  reset the Sequence generator
+        3.  set to not game-over
+
+        :return:
+        """
+
+        self.field.field = FieldFactory.get_all_zeros(self.size)
+        self.generator = Sequencer(np.arange(7))
+        self.is_game_over = False
+
     @staticmethod
     def make_field(size: tuple[int, int]) -> Field:
         """
@@ -112,8 +132,6 @@ class Engine:
 
         :return: the Field object.
         """
-
-        from src.util.fieldfac import FieldFactory
 
         return Field(FieldFactory.get_all_zeros(size))
 

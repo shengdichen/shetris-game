@@ -63,6 +63,10 @@ class Field:
     def field(self):
         return self._field
 
+    @field.setter
+    def field(self, value: np.ndarray):
+        self._field = value
+
     @property
     def size(self):
         return self._size
