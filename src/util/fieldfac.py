@@ -17,9 +17,9 @@
 #
 
 
-import os
-
 import numpy as np
+
+from src.util.common import CommonUtil
 
 
 class FieldFactory:
@@ -56,17 +56,6 @@ class FieldReader:
     """
 
     @staticmethod
-    def get_script_abs_dir() -> str:
-        """
-        Retrieve the absolute path of this script.
-
-        :return: absolute path of this script
-        """
-
-        real_path = os.path.realpath(__file__)
-        return os.path.dirname(real_path)
-
-    @staticmethod
     def read_from_file(filename_rel: str = "sample") -> np.ndarray:
         """
         Read a tetris-field from a local file.
@@ -75,19 +64,15 @@ class FieldReader:
         :return: numpy's ndarray of bool
         """
 
-        scriptdir_abs = FieldReader.get_script_abs_dir()
-        filename_abs = os.path.join(scriptdir_abs, filename_rel)
-
+        filename_abs = CommonUtil.get_filename_abs(filename_rel)
         return np.loadtxt(filename_abs, dtype=bool)
-
-
-def run_reader():
-    print(FieldReader.get_script_abs_dir())
 
 
 def run_factory():
     print(FieldFactory.get_all_zeros((20, 10)))
     print(FieldFactory.get_all_ones((20, 10)))
+
+    print(FieldReader.read_from_file())
 
 
 if __name__ == "__main__":
