@@ -36,6 +36,17 @@ class EntryTemplate(ABC):
         print("Launching Shetris")
 
     @abstractmethod
+    def reset_entry(self):
+        """
+        Reset Shetris
+
+        :return:
+
+        """
+
+        print("Resetting Shetris")
+
+    @abstractmethod
     def main_loop(self):
         """
         1. PRE-phase
