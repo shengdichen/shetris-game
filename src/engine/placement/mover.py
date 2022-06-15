@@ -740,6 +740,40 @@ def analyzer_zero_pos_test():
     print(ba.get_zero_pos(2, 3))
 
 
+def analyzer_range1_test():
+    ba = BoundaryAnalyzer((20, 10))
+
+    print("O-piece")
+    print(ba.get_valid_range1(0, 0))
+    print(ba.get_valid_range1(0, 1))
+    print(ba.get_valid_range1(0, 2))
+    print(ba.get_valid_range1(0, 3))
+    print(ba.get_shifted_range1(0, 0))
+    print(ba.get_shifted_range1(0, 1))
+    print(ba.get_shifted_range1(0, 2))
+    print(ba.get_shifted_range1(0, 3))
+
+    print("I-piece")
+    print(ba.get_valid_range1(1, 0))
+    print(ba.get_valid_range1(1, 1))
+    print(ba.get_valid_range1(1, 2))
+    print(ba.get_valid_range1(1, 3))
+    print(ba.get_shifted_range1(1, 0))
+    print(ba.get_shifted_range1(1, 1))
+    print(ba.get_shifted_range1(1, 2))
+    print(ba.get_shifted_range1(1, 3))
+
+    print("I-piece")
+    print(ba.get_valid_range1(2, 0))
+    print(ba.get_valid_range1(2, 1))
+    print(ba.get_valid_range1(2, 2))
+    print(ba.get_valid_range1(2, 3))
+    print(ba.get_shifted_range1(2, 0))
+    print(ba.get_shifted_range1(2, 1))
+    print(ba.get_shifted_range1(2, 2))
+    print(ba.get_shifted_range1(2, 3))
+
+
 def test_setup():
     from src.util.fieldfac import FieldReader
     from src.engine.placement.piece import Config
