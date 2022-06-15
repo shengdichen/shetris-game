@@ -627,6 +627,30 @@ class BoundaryAnalyzer:
 
         return valid_range_all[idx_pos][idx_dir]
 
+    def get_valid_range1(self, pid: int, rot: int) -> np.ndarray:
+        """
+        Get the lower and higher valid range in pos1.
+
+        Usage:
+        1.  in PRE-phase: after:
+            1.  pid has been generated
+            2.  user's rotation is processed
+            obtain the range for the subsequent input for pos1
+
+        :param pid:
+        :param rot:
+        :return:
+        """
+
+        if pid == 0:
+            valid_range_all = self.valid_range_o[rot]
+        elif pid == 1:
+            valid_range_all = self.valid_range_i[rot]
+        else:
+            valid_range_all = self.valid_range_szljt[rot]
+
+        return valid_range_all[1]
+
 
 def analyzer_boundary_test():
     from src.engine.placement.piece import Config, Piece
