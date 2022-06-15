@@ -651,6 +651,25 @@ class BoundaryAnalyzer:
 
         return valid_range_all[1]
 
+    def get_shifted_range1(self, pid: int, rot: int) -> np.ndarray:
+        """
+        Shift the valid range in pos1 such that:
+        1.  the lower-bound is always 0
+        2.  the "length" of the range is preserved
+
+        E.g.,
+        The I-piece in rotation-1 has the valid range of (-1, 8)
+        ->  This would be shifted to (0, 9) with this function
+
+        :param pid:
+        :param rot:
+        :return:
+        """
+        range_pre_shift = self.get_valid_range1(pid, rot)
+
+        range_shifted = range_pre_shift - range_pre_shift[0]
+        return range_shifted
+
 
 def analyzer_boundary_test():
     from src.engine.placement.piece import Config, Piece
