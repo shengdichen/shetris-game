@@ -22,16 +22,36 @@ from typing import Optional
 import numpy as np
 
 from src.engine.engine import Engine
+from src.entry.fetcher.base import Corrector
 
 
 class _InputConverter:
     """
     Give me:
-    1.  human's random input at terminal
+    1.  a typing human
+    2.  a terminal
     And I will:
     1.  convert this input to a tuple of integers
+    2.  otherwise raw, unprocessed
 
     """
+
+    @staticmethod
+    def prompt_pre_raw() -> tuple[int, int]:
+        """
+        Ask for the pre-move (rot, pos1):
+        1.  both at the same time!
+        2.  do not hint
+
+        :return:
+        """
+
+        move_input = input("Give me the pre-move: (delta_rot <space> delta_pos1)")
+        if move_input:
+            delta_rot, delta_pos1 = _InputConverter._string_to_ints(move_input)
+            return delta_rot, delta_pos1
+        else:
+            return 0, 0
 
     @staticmethod
     def _string_to_ints(move_input: str):
@@ -46,6 +66,12 @@ class _InputConverter:
 
     @staticmethod
     def prompt_pre_rot() -> int:
+        """
+        Get the pre-rot
+
+        :return:
+        """
+
         move_input = input("Give me the pre-rot: (delta_rot)")
         if move_input:
             return _InputConverter._string_to_ints(move_input)[0]
@@ -53,7 +79,30 @@ class _InputConverter:
             return 0
 
     @staticmethod
-    def prompt_pre_pos1(valid_range: np.ndarray) -> int:
+    def prompt_pre_pos1() -> int:
+        """
+        Get pre-pos1:
+        1.  do not hint valid range
+
+        :return:
+        """
+
+        move_input = input("Give me the pre-pos1: (delta_pos1)")
+        if move_input:
+            return _InputConverter._string_to_ints(move_input)[0]
+        else:
+            return 0
+
+    @staticmethod
+    def prompt_pre_pos1_hinted(valid_range: np.ndarray) -> int:
+        """
+        Get pre-pos1:
+        1.  hint valid range
+
+        :param valid_range:
+        :return:
+        """
+
         move_input = input(
             "Give me the pre-pos1: (delta_pos1) within {0}".format(valid_range)
         )
@@ -61,22 +110,6 @@ class _InputConverter:
             return _InputConverter._string_to_ints(move_input)[0]
         else:
             return 0
-
-    @staticmethod
-    def prompt_pre() -> tuple[int, int]:
-        """
-        Ask for the pre-move:
-        1.  (rot, pos1)
-
-        :return:
-        """
-
-        move_input = input("Give me the pre-move: (delta_rot <space> delta_pos1)")
-        if move_input:
-            delta_rot, delta_pos1 = _InputConverter._string_to_ints(move_input)
-            return delta_rot, delta_pos1
-        else:
-            return 0, 0
 
     @staticmethod
     def prompt_atomic() -> Optional[tuple[int, bool]]:
@@ -125,9 +158,10 @@ def input_converter_test():
     ic = _InputConverter
 
     print(ic.prompt_pre_rot())
-    print(ic.prompt_pre_pos1(np.array((1, 9))))
+    print(ic.prompt_pre_pos1())
+    print(ic.prompt_pre_pos1_hinted(np.array((1, 9))))
 
-    print(ic.prompt_pre())
+    print(ic.prompt_pre_raw())
     print(ic.prompt_atomic())
     print(ic.prompt_multi())
 
@@ -142,7 +176,18 @@ class FetcherTerminal:
     """
 
     @staticmethod
-    def pre_rot(engine: Engine) -> tuple[int, np.ndarray]:
+    def pre_raw() -> tuple[int, int]:
+        """
+        1.  prompt for PRE-rot and PRE-pos1 together
+        2.  return the result without any pre-processing
+
+        :return:
+        """
+
+        return _InputConverter.prompt_pre_raw()
+
+    @staticmethod
+    def _pre_rot_and_range(engine: Engine) -> tuple[int, np.ndarray]:
         """
         First part (of two) of the PRE-phase:
         1.  Fetch the rot from input
@@ -152,52 +197,64 @@ class FetcherTerminal:
         :param engine:
         :return: the pre-rot and the valid-range
         """
-        pass
+
+        pre_rot = _InputConverter.prompt_pre_rot()
+
+        valid_range_shifted = engine.mover.analyzer.get_shifted_range1(
+            engine.piece.pid, pre_rot
+        )
+
+        return pre_rot, valid_range_shifted
 
     @staticmethod
-    def pre_pos1(valid_range: np.ndarray) -> int:
-        """
-        Second part (of two) of the PRE-phase:
-        1.  Fetch the pos1 from input
-
-        :param valid_range:
-        :return:
-        """
-
-        return _InputConverter.prompt_pre_pos1(valid_range)
-
-    @staticmethod
-    def pre(engine: Engine) -> tuple[int, int]:
+    def pre_hinted(engine: Engine) -> tuple[int, int]:
         """
         The PRE-phase
+
+        For pos1:
+        1.  just hint
+        2.  do not correct
 
         :param engine:
         :return:
         """
 
-        pre_rot = _InputConverter.prompt_pre_rot()
-
-        pre_rot, valid_range = FetcherTerminal.pre_rot(engine)
-        pre_pos1 = FetcherTerminal.pre_pos1(valid_range)
+        pre_rot, valid_range = FetcherTerminal._pre_rot_and_range(engine)
+        pre_pos1 = _InputConverter.prompt_pre_pos1_hinted(valid_range)
 
         return pre_rot, pre_pos1
 
     @staticmethod
-    def
+    def pre_hinted_corrected(engine: Engine) -> tuple[bool, int, int]:
+        """
+        The PRE-phase
+
+        For pos1:
+        1.  hint
+        2.  also correct (both lower and upper limit!)
+
+        :param engine:
+        :return:
+        """
+
+        pre_rot, valid_range = FetcherTerminal._pre_rot_and_range(engine)
+        pre_pos1 = _InputConverter.prompt_pre_pos1_hinted(valid_range)
+
+        corrected, pre_pos1 = Corrector.correct_within(pre_pos1, valid_range)
+
+        return corrected, pre_rot, pre_pos1
 
     @staticmethod
-    def pre_default(engine: Engine):
+    def pre_zero() -> tuple[int, int]:
         """
-        Execute the pre-move: (0, 0)
+        Execute the pre-move: (0, 0), i.e.,
+        1.  pre-rot = 0
+        2.  pos is in ZERO-pos
 
         :return:
         """
 
-        engine.init_piece()
-
-        engine.exec_pre(0, 0)
-
-        print("Engine done: pre")
+        return 0, 0
 
     @staticmethod
     def pre_terminal(engine: Engine):
@@ -211,7 +268,7 @@ class FetcherTerminal:
         engine.init_piece()
 
         analyzer = engine.mover.analyzer
-        pre = _InputConverter.prompt_pre()
+        pre = _InputConverter.prompt_pre_raw()
         if pre is not None:
             delta_rot, delta_pos1 = pre
 

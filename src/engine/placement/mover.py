@@ -445,7 +445,7 @@ class Mover:
             in_pos0, in_pos_dir = Mover.check_string_to_check_tuple[curr_check_str]
             exceeded_curr = self._bad_boundary(piece, in_pos0, in_pos_dir)
             if exceeded_curr:
-                print("Failed at {0}".format(curr_check_str))
+                # print("Failed at {0}".format(curr_check_str))
                 return True
 
         return False
@@ -464,7 +464,7 @@ class Mover:
         if self._bad_boundaries(piece, check_str):
             return True
         if self.field.has_collision(piece.coord):
-            print("Failed collision")
+            # print("Failed collision")
             return True
 
         return False

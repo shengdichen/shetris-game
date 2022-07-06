@@ -19,7 +19,7 @@
 
 import numpy as np
 
-from src.engine.generator.baggen import Sequencer
+from src.engine.generator.baggen import Sequencer, Shuffler
 from src.engine.generator.base import Generator
 from src.engine.placement.field import Field
 from src.engine.placement.mover import Mover
@@ -57,11 +57,13 @@ class Engine:
 
     def __init__(self, size: tuple[int, int]):
         self._field = self.make_field(size)
-        self.field.print_field()
         self._size = self.field.size
 
-        self._pid = None
-        self._generator = Sequencer(np.arange(7))
+        self._bag, self._generator_type = np.array((0, 1, 6)), Shuffler
+        # self._bag, self._generator_type = np.arange(7), Sequencer
+        # self._bag, self._generator_type = np.arange(7), Shuffler
+        self._generator = self._generator_type(self._bag)
+        self._pid = self.generator.reservoir.data[0]
 
         self._piece = None
         self._mover = Mover(self.field)
@@ -122,8 +124,10 @@ class Engine:
         """
 
         self.field.field = FieldFactory.get_all_zeros(self.size)
-        self.generator = Sequencer(np.arange(7))
+        self.generator = self._generator_type(self._bag)
         self.is_game_over = False
+
+        self.init_piece()
 
     @staticmethod
     def make_field(size: tuple[int, int]) -> Field:
@@ -164,7 +168,7 @@ class Engine:
 
         config = Config(np.array([-4, +0]), +0)
         self.piece = Piece.from_init(self.pid, config)
-        print("Piece inited:", self.piece)
+        # print("Piece inited:", self.piece)
 
     def exec_pre(self, delta_rot: int, delta_pos1: int) -> None:
         """
@@ -179,10 +183,10 @@ class Engine:
 
         if result_pre is not None:
             self.piece = result_pre
-            print("PRE-Phase SUCCESSFUL:", self.piece)
+            # print("PRE-Phase SUCCESSFUL:", self.piece)
         else:
             self.is_game_over = True
-            print("PRE-Phase FAILED, GAMEOVER!")
+            # print("PRE-Phase FAILED, GAMEOVER!")
 
     def exec_atomic(self, move_type: int, pos_dir: bool) -> None:
         """
@@ -253,7 +257,7 @@ class Engine:
         """
         self.piece = self.mover.attempt_drop(self.piece)
 
-    def exec_freeze(self) -> None:
+    def exec_freeze(self) -> list[np.ndarray]:
         """
         1.  write the final coordinates of the current piece to the field
         2.  obtain the vertical range of the piece
@@ -271,9 +275,10 @@ class Engine:
         self.field.set_many(self.piece.coord, True)
 
         vertical_range = CoordFactory.get_range(self.pid, self.piece.config, True)
-        self.field.lineclear(vertical_range)
+        full_chunks = self.field.lineclear(vertical_range)
 
-        self.field.print_field()
+        # self.field.print_field()
+        return full_chunks
 
     def clean_up(self) -> None:
         """

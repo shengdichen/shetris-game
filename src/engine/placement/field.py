@@ -242,7 +242,7 @@ class Field:
         # nonzero() returns a tuple for np's advanced indexing: fish out with
         # [0]
         fullrow_numbers = np.nonzero(is_fullrow)[0]
-        print(fullrow_numbers)
+        # print(fullrow_numbers)
 
         if fullrow_numbers.size == 0:
             return None
@@ -289,7 +289,7 @@ class Field:
         self.set_from_idx(idx_old, False)
         self.set_from_idx(idx_new, True)
 
-    def lineclear(self, span_of_piece: Optional[np.ndarray] = None):
+    def lineclear(self, span_of_piece: Optional[np.ndarray] = None) -> list[np.ndarray]:
         """
         Perform the OP-LINECLEAR:
         1.  find full-rows
@@ -304,13 +304,15 @@ class Field:
             ->  from the highest (lowest index in np) chunk to the lowest:
                 ->  perform line-clear on each chunk (routine defined below)
 
+        Return a list of all such chunks if existent, empty list otherwise
+
         NOTE:
         1.  the (vertical) span of a piece must be provided as:
             (upper_row_of_piece, lower_row_of_piece + 1)
             in the usual range() convention of numpy and python
 
         :type span_of_piece: the vertical span to target
-        :return: None
+        :return: all chunks of full lines if existent, empty list otherwise
         """
 
         if span_of_piece is None:
@@ -323,8 +325,13 @@ class Field:
 
         full_rows = self._full_row_num(target_range)
         if full_rows is not None:
-            for chunk in Field._break_into_chunks(full_rows):
+            chunks = Field._break_into_chunks(full_rows)
+            for chunk in chunks:
                 self._lineclear_chunk(chunk)
+        else:
+            chunks = []
+
+        return chunks
 
     @staticmethod
     def _break_into_chunks(all_lines: np.ndarray) -> list[np.ndarray]:
@@ -475,7 +482,7 @@ def run_lineclear():
     f.print_field()
 
     print("simulate line-clear")
-    f.lineclear(None)
+    print(f.lineclear(None)[0].size)
 
     f.print_field()
 
@@ -493,4 +500,5 @@ def run_writeback_checks():
 
 
 if __name__ == "__main__":
+    run_lineclear()
     pass

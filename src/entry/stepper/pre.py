@@ -17,135 +17,105 @@
 #
 
 
-from abc import ABC, abstractmethod
+from typing import Callable
+
+from src.engine.engine import Engine
 
 
 class PrePhase:
+    """
+    PRE-phase: from pid-generation to knowing if game-over:
+    1.  init pid
+    2.  perform pre-input
+
+    NOTE:
+    1.  it is NOT up to the phase-executor to apply modifications to the input
+    2.  the phase-executor just executes the action
+    3.  it is NOT up to the executor to check game-over:
+        ->  should be done in entry to decide game-over implementations
+
+    """
+
     @staticmethod
-    def apply(engine, action):
+    def default(
+        engine: Engine, action_generator: Callable[..., tuple[int, int]]
+    ) -> None:
         """
-        PRE-phase: from pid-generation to knowing if game-over:
-        1.  init pid
-        2.  perform pre-input
-        3.  check if game-over
+        1.  directly apply the action
 
         :return:
         """
 
         engine.init_piece()
 
-        pre_rot, pre_pos1 = action
-
+        pre_rot, pre_pos1 = action_generator()
         engine.exec_pre(pre_rot, pre_pos1)
 
     @staticmethod
-    def correct_and_apply(engine, action):
+    def correction_aware(
+        engine: Engine, action_generator: Callable[..., tuple[bool, int, int]]
+    ) -> bool:
         """
-        1.  Correct the move
-        2.  apply the move
+        1.  Apply the action with correction-aware generator
+        2.  Return True if corrected
 
         :param engine:
-        :param action:
+        :param action_generator:
         :return:
         """
 
-        pass
+        engine.init_piece()
+
+        corrected, pre_rot, pre_pos1 = action_generator()
+        engine.exec_pre(pre_rot, pre_pos1)
+        # print("Engine done: pre")
+
+        return corrected
 
 
-class EntryTemplate(ABC):
+class PrePhaseGym:
     """
-    An entry-application decides:
-    1.  the engine
-    2.  the front
-    3.  the fetcher
-
-    1.  the three phases:
-        1.  PRE:
-            1.  when game-over
-            2.
+    For the Gym interface:
+    1.  no state change is allowed before applying the action:
+    2.  thus: the init-piece must be relocated to the Freeze-phase
 
     """
 
-    def __init__(self):
-        pass
-
-    @abstractmethod
-    def init_entry(self):
+    @staticmethod
+    def default(
+        engine: Engine, action_generator: Callable[..., tuple[int, int]]
+    ) -> None:
         """
-        Perform all startup-up work to launch the Shetris
-
-        :return:
-
-        """
-
-        print("Launching Shetris")
-
-    @abstractmethod
-    def reset_entry(self):
-        """
-        Reset Shetris
-
-        :return:
-
-        """
-
-        print("Resetting Shetris")
-
-    @abstractmethod
-    def main_loop(self):
-        """
-        1. PRE-phase
-        2. MOVE-phase
-        3. FREEZE-phase
+        1.  directly apply the action
 
         :return:
         """
 
-        pass
+        # engine.init_piece()
 
-    @abstractmethod
-    def pre_phase(self):
+        pre_rot, pre_pos1 = action_generator()
+        engine.exec_pre(pre_rot, pre_pos1)
+
+    @staticmethod
+    def correction_aware(
+        engine: Engine, action_generator: Callable[..., tuple[bool, int, int]]
+    ) -> bool:
         """
-        1. generate pid
-        2. generate default pos (rot is always 0)
-        3. check game-over
+        1.  Apply the action with correction-aware generator
+        2.  Return True if corrected
 
+        :param engine:
+        :param action_generator:
         :return:
         """
 
-        pass
+        # engine.init_piece()
 
-    @abstractmethod
-    def move_phase(self):
-        """
-        1. keep getting user's left and right
-        2. receive end signal
+        corrected, pre_rot, pre_pos1 = action_generator()
+        engine.exec_pre(pre_rot, pre_pos1)
+        # print("Engine done: pre")
 
-        :return:
-        """
-
-        pass
-
-    @abstractmethod
-    def freeze_phase(self):
-        """
-        1. line-clear
-        2. provide
-
-        :return:
-        """
-
-        pass
-
-    @abstractmethod
-    def quit_entry(self):
-        """
-        Perform all clean-ups necessary to quit the Shetris
-
-        :return:
-        """
-
-        print("Quitting Shetris...")
+        return corrected
 
 
 if __name__ == "__main__":
