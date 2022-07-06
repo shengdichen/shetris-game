@@ -20,7 +20,52 @@
 from abc import ABC, abstractmethod
 
 
+class PrePhase:
+    @staticmethod
+    def apply(engine, action):
+        """
+        PRE-phase: from pid-generation to knowing if game-over:
+        1.  init pid
+        2.  perform pre-input
+        3.  check if game-over
+
+        :return:
+        """
+
+        engine.init_piece()
+
+        pre_rot, pre_pos1 = action
+
+        engine.exec_pre(pre_rot, pre_pos1)
+
+    @staticmethod
+    def correct_and_apply(engine, action):
+        """
+        1.  Correct the move
+        2.  apply the move
+
+        :param engine:
+        :param action:
+        :return:
+        """
+
+        pass
+
+
 class EntryTemplate(ABC):
+    """
+    An entry-application decides:
+    1.  the engine
+    2.  the front
+    3.  the fetcher
+
+    1.  the three phases:
+        1.  PRE:
+            1.  when game-over
+            2.
+
+    """
+
     def __init__(self):
         pass
 
@@ -86,21 +131,6 @@ class EntryTemplate(ABC):
         """
         1. line-clear
         2. provide
-
-        :return:
-        """
-
-        pass
-
-    @abstractmethod
-    def move_oneshot(self):
-        """
-        1. receive a config_delta
-        2. break this down to:
-            a. pre-drop rot
-            b. pre-drop pos
-            c. post-drop rot
-            d. post-drop pos
 
         :return:
         """
